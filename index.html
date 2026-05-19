@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Polymarket • Arc Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: #6366f1;
+        }
+        
+        body {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .logo-font {
+            font-family: 'Space Grotesk', 'Inter', sans-serif;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .market-card {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .market-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .price-btn {
+            transition: all 0.1s ease;
+        }
+        
+        .price-btn:hover {
+            transform: scale(1.02);
+            filter: brightness(1.1);
+        }
+
+        .section-header {
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        .prediction-bar {
+            height: 6px;
+            background: linear-gradient(to right, #10b981 0%, #10b981 var(--yes-pct), #f43f5e var(--yes-pct), #f43f5e 100%);
+            border-radius: 9999px;
+        }
+
+        .modal {
+            animation: modalPop 0.2s ease forwards;
+        }
+
+        @keyframes modalPop {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .nav-active {
+            background-color: #1e2937;
+            color: white;
+            border-radius: 6px;
+        }
+
+        .stat-value {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .outcome-yes { color: #10b981; }
+        .outcome-no { color: #f43f5e; }
+
+        .metric {
+            font-variant-numeric: tabular-nums;
+        }
+        
+        .market-grid {
+            scrollbar-width: thin;
+        }
+
+        .tail-container {
+            max-width: 1280px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-200">
+    <!-- Navbar -->
+    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50">
+        <div class="tail-container px-6 py-4">
+            <div class="flex items-center justify-between">
+                <!-- Logo -->
+                <div class="flex items-center gap-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-inner">
+                        <i class="fa-solid fa-chart-line text-white text-3xl"></i>
+                    </div>
+                    <div>
+                        <span class="logo-font text-3xl font-semibold tracking-tighter">polymarket</span>
+                        <span class="ml-1.5 px-2 py-0.5 text-[10px] font-mono tracking-[2px] bg-slate-800 text-slate-400 rounded-full align-super">ARC</span>
+                    </div>
+                </div>
+
+                <!-- Search -->
+                <div class="flex-1 max-w-md mx-8">
+                    <div class="relative group">
+                        <input 
+                            id="search-input"
+                            type="text" 
+                            placeholder="Search markets..." 
+                            class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 transition-colors text-sm rounded-3xl pl-11 py-2.5 outline-none placeholder:text-slate-500"
+                            onkeyup="filterMarkets()"
+                        >
+                        <i class="fa-solid fa-search absolute left-4 top-3 text-slate-500"></i>
+                    </div>
+                </div>
+
+                <!-- Right side -->
+                <div class="flex items-center gap-x-3">
+                    <!-- Tabs -->
+                    <div class="flex items-center bg-slate-900 border border-slate-800 rounded-3xl p-1 text-sm">
+                        <button onclick="switchTab('markets')" 
+                                id="tab-markets"
+                                class="px-5 py-1.5 rounded-3xl font-medium flex items-center gap-x-2 nav-active">
+                            <i class="fa-solid fa-globe fa-sm"></i>
+                            <span>Markets</span>
+                        </button>
+                        <button onclick="switchTab('portfolio')" 
+                                id="tab-portfolio"
+                                class="px-5 py-1.5 rounded-3xl font-medium flex items-center gap-x-2 text-slate-400 hover:text-slate-200 transition-colors">
+                            <i class="fa-solid fa-wallet fa-sm"></i>
+                            <span>Portfolio</span>
+                        </button>
+                    </div>
+
+                    <!-- Connect Wallet -->
+                    <button onclick="connectWallet()" 
+                            id="connect-btn"
+                            class="flex items-center gap-x-2 px-5 py-2 bg-white text-slate-900 hover:bg-slate-100 transition-all font-semibold text-sm rounded-3xl shadow-sm active:scale-[0.985]">
+                        <i class="fa-solid fa-wallet"></i>
+                        <span id="connect-text">Connect Wallet</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Stats Bar -->
+    <div class="border-b border-slate-800 bg-slate-900/50">
+        <div class="tail-container px-6 py-3">
+            <div class="flex items-center justify-between text-sm">
+                <div class="flex items-center gap-x-8">
+                    <div>
+                        <span class="text-slate-400 text-xs tracking-wider">TOTAL VOLUME</span>
+                        <div class="font-semibold text-lg metric" id="total-volume">$48.7M</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-xs tracking-wider">ACTIVE MARKETS</span>
+                        <div class="font-semibold text-lg metric" id="active-markets">142</div>
+                    </div>
+                    <div>
+                        <span class="text-slate-400 text-xs tracking-wider">TRADERS</span>
+                        <div class="font-semibold text-lg metric" id="total-traders">89,412</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-x-2 text-xs">
+                    <div class="flex items-center gap-x-1.5 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-2xl">
+                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                        <span class="font-medium">Live on Arc</span>
+                    </div>
+                    <button onclick="showCreateModal()" 
+                            class="flex items-center gap-x-2 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 transition-colors text-xs font-semibold rounded-2xl border border-slate-700">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Create Market</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="tail-container px-6 pt-6 pb-12">
+        
+        <!-- Markets View -->
+        <div id="markets-view">
+            <!-- Category Filters -->
+            <div class="flex items-center justify-between mb-5">
+                <div class="flex items-center gap-x-2 flex-wrap gap-y-2" id="category-filters">
+                    <!-- Populated by JS -->
+                </div>
+                
+                <div class="flex items-center gap-x-2 text-xs">
+                    <select id="sort-select" onchange="filterMarkets()" 
+                            class="bg-slate-900 border border-slate-700 text-xs rounded-2xl px-3 py-2 outline-none cursor-pointer">
+                        <option value="volume">Sort: Highest Volume</option>
+                        <option value="newest">Sort: Ending Soon</option>
+                        <option value="price-high">Sort: Highest Yes Price</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Markets Grid -->
+            <div id="markets-grid" 
+                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 market-grid">
+                <!-- Populated dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- Portfolio View -->
+        <div id="portfolio-view" class="hidden">
+            <div class="mb-6">
+                <h2 class="section-header flex items-center gap-x-3">
+                    <span>Your Positions</span>
+                    <span id="portfolio-count" 
+                          class="text-xs font-mono bg-slate-800 px-3 py-1 rounded-2xl text-slate-400">0 active</span>
+                </h2>
+            </div>
+
+            <!-- Portfolio Summary -->
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-6">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                    <div>
+                        <div class="text-xs text-slate-400 tracking-wider">AVAILABLE BALANCE</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1" id="portfolio-balance">$10,000.00</div>
+                        <div class="text-emerald-400 text-xs mt-1 flex items-center gap-x-1">
+                            <i class="fa-solid fa-wallet"></i>
+                            <span>USDC</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="text-xs text-slate-400 tracking-wider">POSITIONS VALUE (IF RESOLVED)</div>
+                        <div class="text-4xl font-semibold tabular-nums mt-1 text-emerald-400" id="portfolio-value">$0.00</div>
+                        <div class="text-xs text-slate-500 mt-1">Based on current share prices</div>
+                    </div>
+                    <div class="flex items-end justify-end">
+                        <button onclick="claimAllWinnings()" 
+                                class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold rounded-2xl flex items-center gap-x-2">
+                            <i class="fa-solid fa-hand-holding-usd"></i>
+                            <span>Claim All Winnings</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Positions List -->
+            <div id="positions-list" class="space-y-3">
+                <!-- Populated by JS -->
+            </div>
+            
+            <div id="no-positions" class="hidden text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl">
+                <i class="fa-solid fa-inbox text-4xl text-slate-700 mb-4"></i>
+                <p class="text-slate-400">You don't have any open positions yet.</p>
+                <button onclick="switchTab('markets')" 
+                        class="mt-4 text-sm px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl transition-colors">
+                    Browse Markets
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Modal -->
+    <div id="trade-modal" onclick="if (event.target.id === 'trade-modal') closeTradeModal()" 
+         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="modal bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+            
+            <!-- Modal Header -->
+            <div class="px-6 pt-5 pb-4 border-b border-slate-700 flex items-center justify-between">
+                <div>
+                    <div class="font-semibold text-lg" id="modal-question"></div>
+                    <div class="flex items-center gap-x-2 mt-1 text-xs">
+                        <span id="modal-category" class="px-2.5 py-0.5 rounded-xl text-[10px] font-medium"></span>
+                        <span class="text-slate-500" id="modal-end-date"></span>
+                    </div>
+                </div>
+                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white w-9 h-9 flex items-center justify-center">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div class="p-6">
+                <!-- Outcome Selection -->
+                <div class="mb-5">
+                    <div class="text-xs font-medium text-slate-400 mb-2 tracking-wider">SELECT OUTCOME</div>
+                    <div class="grid grid-cols-2 gap-3" id="outcome-buttons">
+                        <!-- JS populated Yes/No buttons -->
+                    </div>
+                </div>
+
+                <!-- Current Price -->
+                <div class="flex justify-between items-baseline mb-5 px-1">
+                    <div>
+                        <span class="text-xs text-slate-400">CURRENT PRICE</span>
+                        <div id="modal-current-price" class="text-4xl font-semibold tabular-nums"></div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-400">PROBABILITY</div>
+                        <div id="modal-probability" class="text-2xl font-semibold"></div>
+                    </div>
+                </div>
+
+                <!-- Amount Input -->
+                <div class="mb-5">
+                    <div class="flex justify-between text-xs mb-1.5 px-1">
+                        <div class="font-medium text-slate-300">Amount to spend (USDC)</div>
+                        <div onclick="setMaxAmount()" class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-medium">MAX</div>
+                    </div>
+                    
+                    <div class="relative">
+                        <input type="number" id="trade-amount" step="0.01" min="1"
+                               class="w-full bg-slate-800 border border-slate-600 focus:border-indigo-500 transition-colors text-2xl font-semibold rounded-2xl px-5 py-4 outline-none"
+                               placeholder="0.00" oninput="calculateTradePreview()">
+                        <div class="absolute right-5 top-4 text-slate-400 font-medium">USDC</div>
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-4 mb-5 text-sm">
+                    <div class="flex justify-between py-1">
+                        <span class="text-slate-400">You'll receive</span>
+                        <span id="preview-shares" class="font-semibold tabular-nums">0.00 shares</span>
+                    </div>
+                    <div class="flex justify-between py-1">
+                        <span class="text-slate-400">Avg. price per share</span>
+                        <span id="preview-avg-price" class="font-medium tabular-nums">—</span>
+                    </div>
+                    <div class="flex justify-between py-1 border-t border-slate-700 mt-2 pt-2">
+                        <span class="font-medium">Potential payout if correct</span>
+                        <span id="preview-payout" class="font-semibold text-emerald-400 tabular-nums">$0.00</span>
+                    </div>
+                    <div class="flex justify-between text-xs pt-0.5">
+                        <span class="text-emerald-400/70">Profit if wins</span>
+                        <span id="preview-profit" class="font-medium text-emerald-400 tabular-nums">+$0.00 (+0%)</span>
+                    </div>
+                </div>
+
+                <!-- Balance Info -->
+                <div class="flex justify-between items-center text-xs px-1 mb-5">
+                    <div class="text-slate-400">Your balance</div>
+                    <div class="font-medium tabular-nums" id="modal-balance"></div>
+                </div>
+
+                <!-- Action Button -->
+                <button onclick="executeTrade()"
+                        id="trade-action-btn"
+                        class="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985]">
+                    <!-- Dynamic content set by JS -->
+                </button>
+                
+                <div class="text-center mt-3">
+                    <div class="text-[10px] text-slate-500">This is a simulated trade on the Arc demo. No real funds are used.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Market Modal -->
+    <div id="create-modal" onclick="if (event.target.id === 'create-modal') closeCreateModal()" 
+         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="modal bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6">
+            <div class="flex justify-between items-center mb-5">
+                <div class="font-semibold text-xl">Create New Market</div>
+                <button onclick="closeCreateModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-medium tracking-wider text-slate-400">QUESTION</label>
+                    <input id="new-question" type="text" placeholder="Will X happen before Y?" 
+                           class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none focus:border-indigo-500">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs font-medium tracking-wider text-slate-400">CATEGORY</label>
+                        <select id="new-category" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none">
+                            <option>Politics</option>
+                            <option>Crypto</option>
+                            <option>Sports</option>
+                            <option>Tech</option>
+                            <option>Entertainment</option>
+                            <option>Economy</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs font-medium tracking-wider text-slate-400">ENDS ON</label>
+                        <input id="new-end-date" type="date" value="2026-12-31"
+                               class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-xs font-medium tracking-wider text-slate-400">INITIAL YES PRICE</label>
+                    <div class="flex items-center gap-x-3 mt-1">
+                        <input id="new-yes-price" type="range" min="5" max="95" step="5" value="50" 
+                               class="flex-1 accent-indigo-500" oninput="updatePriceLabel()">
+                        <div class="w-14 text-center">
+                            <span id="new-yes-price-label" class="font-mono text-lg font-semibold">50</span>
+                            <span class="text-xs text-slate-400">¢</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex gap-x-3 mt-7">
+                <button onclick="closeCreateModal()" 
+                        class="flex-1 py-3 rounded-2xl border border-slate-700 hover:bg-slate-800 transition-colors font-medium">Cancel</button>
+                <button onclick="createNewMarket()" 
+                        class="flex-1 py-3 rounded-2xl bg-white text-slate-900 font-semibold hover:bg-slate-200 transition-colors">Create Market</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-y-2"></div>
+
+    <script>
+        // Tailwind script configuration
+        function initTailwind() {
+            document.documentElement.style.setProperty('--accent', '#6366f1');
+            
+            tailwind.config = {
+                theme: {
+                    extend: {
+                        fontFamily: {
+                            'grotesk': ['Space Grotesk', 'system-ui', 'sans-serif']
+                        }
+                    }
+                }
+            };
+        }
+
+        // Global State
+        let markets = [];
+        let user = {
+            connected: false,
+            address: null,
+            balance: 10000,
+            positions: {} // { marketId: { yes: number, no: number } }
+        };
+        let currentFilter = 'all';
+        let currentTrade = { marketId: null, side: null }; // For modal state
+
+        // Initial sample markets
+        function initMarkets() {
+            const savedMarkets = localStorage.getItem('arcMarkets');
+            if (savedMarkets) {
+                markets = JSON.parse(savedMarkets);
+            } else {
+                markets = [
+                    {
+                        id: 1,
+                        question: "Will Donald Trump win the 2028 US Presidential Election?",
+                        category: "Politics",
+                        yesPrice: 0.58,
+                        volume: 2450000,
+                        endDate: "2028-11-07",
+                        liquidity: 890000,
+                        traders: 5670,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 2,
+                        question: "Will Bitcoin reach $150,000 by December 31, 2026?",
+                        category: "Crypto",
+                        yesPrice: 0.71,
+                        volume: 1870000,
+                        endDate: "2026-12-31",
+                        liquidity: 620000,
+                        traders: 3420,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 3,
+                        question: "Will the Los Angeles Lakers win the 2027 NBA Championship?",
+                        category: "Sports",
+                        yesPrice: 0.27,
+                        volume: 920000,
+                        endDate: "2027-06-20",
+                        liquidity: 340000,
+                        traders: 2100,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 4,
+                        question: "Will Apple announce a foldable iPhone before 2028?",
+                        category: "Tech",
+                        yesPrice: 0.63,
+                        volume: 485000,
+                        endDate: "2027-09-30",
+                        liquidity: 195000,
+                        traders: 1240,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 5,
+                        question: "Will Taylor Swift release a new album in 2026?",
+                        category: "Entertainment",
+                        yesPrice: 0.44,
+                        volume: 310000,
+                        endDate: "2026-12-31",
+                        liquidity: 142000,
+                        traders: 980,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 6,
+                        question: "Will the US economy enter a technical recession in 2026?",
+                        category: "Economy",
+                        yesPrice: 0.38,
+                        volume: 1340000,
+                        endDate: "2026-12-31",
+                        liquidity: 510000,
+                        traders: 2890,
+                        resolved: false,
+                        winner: null
+                    },
+                    {
+                        id: 7,
+                        question: "Will Kamala Harris have won the 2024 US Presidential Election?",
+                        category: "Politics",
+                        yesPrice: 0.42,
+                        volume: 8750000,
+                        endDate: "2024-11-05",
+                        liquidity: 1200000,
+                        traders: 12480,
+                        resolved: true,
+                        winner: "no"
+                    }
+                ];
+                saveMarkets();
+            }
+
+            // Load user state
+            const savedUser = localStorage.getItem('arcUserState');
+            if (savedUser) {
+                const parsed = JSON.parse(savedUser);
+                user = { ...user, ...parsed };
+            }
+        }
+
+        function saveMarkets() {
+            localStorage.setItem('arcMarkets', JSON.stringify(markets));
+        }
+
+        function saveUserState() {
+            localStorage.setItem('arcUserState', JSON.stringify({
+                connected: user.connected,
+                address: user.address,
+                balance: user.balance,
+                positions: user.positions
+            }));
+        }
+
+        // Format helpers
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', { 
+                style: 'currency', 
+                currency: 'USD',
+                minimumFractionDigits: amount < 10 ? 2 : 0 
+            }).format(amount);
+        }
+
+        function formatPrice(price) {
+            return Math.round(price * 100) + '¢';
+        }
+
+        function formatLargeNumber(num) {
+            if (num >= 1000000) return '$' + (num / 1000000).toFixed(1) + 'M';
+            if (num >= 10000) return '$' + Math.round(num / 1000) + 'k';
+            return '$' + num.toLocaleString();
+        }
+
+        function getDaysLeft(endDateStr) {
+            const end = new Date(endDateStr);
+            const now = new Date('2026-05-19'); // Current simulated date
+            const diffTime = end - now;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) return 'Ended';
+            if (diffDays === 0) return 'Today';
+            if (diffDays === 1) return '1 day';
+            return diffDays + ' days';
+        }
+
+        // Render category filters
+        function renderCategoryFilters() {
+            const container = document.getElementById('category-filters');
+            container.innerHTML = '';
+            
+            const categories = ['all', 'Politics', 'Crypto', 'Sports', 'Tech', 'Entertainment', 'Economy'];
+            const colors = {
+                'all': 'bg-slate-700 text-white',
+                'Politics': 'bg-indigo-500/90 text-white',
+                'Crypto': 'bg-orange-500/90 text-white',
+                'Sports': 'bg-emerald-500/90 text-white',
+                'Tech': 'bg-sky-500/90 text-white',
+                'Entertainment': 'bg-pink-500/90 text-white',
+                'Economy': 'bg-amber-500/90 text-white'
+            };
+
+            categories.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = `px-4 py-1 text-xs font-medium rounded-2xl transition-all flex items-center gap-x-1.5 ${currentFilter === cat ? colors[cat] : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`;
+                btn.innerHTML = cat === 'all' ? 
+                    `<i class="fa-solid fa-layer-group fa-sm mr-1"></i> All` : 
+                    cat;
+                
+                btn.onclick = () => {
+                    currentFilter = cat;
+                    renderCategoryFilters();
+                    filterMarkets();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        // Main render function for markets grid
+        function renderMarkets(filteredMarkets) {
+            const grid = document.getElementById('markets-grid');
+            grid.innerHTML = '';
+
+            if (filteredMarkets.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl">
+                        <i class="fa-solid fa-search text-3xl text-slate-600 mb-3"></i>
+                        <p class="text-slate-400">No markets found matching your filters.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredMarkets.forEach(market => {
+                const card = document.createElement('div');
+                card.className = `market-card bg-slate-900 border border-slate-700 rounded-3xl p-5 flex flex-col`;
+                
+                const yesPct = Math.round(market.yesPrice * 100);
+                const noPct = 100 - yesPct;
+                const daysLeft = getDaysLeft(market.endDate);
+                
+                let actionHTML = '';
+                
+                if (market.resolved) {
+                    const winnerColor = market.winner === 'yes' ? 'emerald' : 'rose';
+                    actionHTML = `
+                        <div class="mt-auto pt-4 border-t border-slate-700">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <span class="px-3 py-1 text-xs font-bold tracking-wider rounded-2xl bg-${winnerColor}-500/10 text-${winnerColor}-400">
+                                        RESOLVED • ${market.winner.toUpperCase()} WON
+                                    </span>
+                                </div>
+                                <button onclick="resolveMarket(${market.id}, '${market.winner}'); event.stopImmediatePropagation();" 
+                                        class="text-xs px-3 py-1 text-slate-400 hover:text-white transition-colors">
+                                    <i class="fa-solid fa-redo fa-xs"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    actionHTML = `
+                        <div class="mt-auto pt-4 border-t border-slate-700 grid grid-cols-2 gap-3">
+                            <button onclick="openTradeModal(${market.id}, 'yes'); event.stopImmediatePropagation();"
+                                    class="price-btn flex flex-col items-center justify-center py-3 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-2xl transition-all active:scale-[0.985]">
+                                <div class="text-emerald-400 text-xs font-medium tracking-wider">YES</div>
+                                <div class="text-3xl font-semibold text-emerald-400 tabular-nums">${formatPrice(market.yesPrice)}</div>
+                            </button>
+                            
+                            <button onclick="openTradeModal(${market.id}, 'no'); event.stopImmediatePropagation();"
+                                    class="price-btn flex flex-col items-center justify-center py-3 px-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-2xl transition-all active:scale-[0.985]">
+                                <div class="text-rose-400 text-xs font-medium tracking-wider">NO</div>
+                                <div class="text-3xl font-semibold text-rose-400 tabular-nums">${formatPrice(1 - market.yesPrice)}</div>
+                            </button>
+                        </div>
+                    `;
+                }
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="px-3 py-1 text-[10px] font-semibold tracking-wider rounded-2xl ${getCategoryColor(market.category)}">
+                            ${market.category}
+                        </span>
+                        <div class="text-right">
+                            <div class="text-xs text-slate-500">${daysLeft}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="font-semibold leading-tight mb-4 text-[15px] pr-1 line-clamp-3">
+                        ${market.question}
+                    </div>
+                    
+                    <!-- Probability bar -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-xs mb-1.5 px-0.5">
+                            <div><span class="font-semibold text-emerald-400">${yesPct}%</span> <span class="text-slate-500">Yes</span></div>
+                            <div class="text-right"><span class="font-semibold text-rose-400">${noPct}%</span> <span class="text-slate-500">No</span></div>
+                        </div>
+                        <div class="prediction-bar w-full bg-slate-700 rounded-full overflow-hidden" 
+                             style="--yes-pct: ${yesPct}%">
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+                        <div>
+                            <span class="font-medium">${formatLargeNumber(market.volume)}</span> 
+                            <span class="text-[10px]">vol</span>
+                        </div>
+                        <div>${market.traders.toLocaleString()} traders</div>
+                    </div>
+                    
+                    ${actionHTML}
+                `;
+                
+                // Make whole card clickable except buttons
+                card.onclick = (e) => {
+                    if (!e.target.closest('button')) {
+                        if (!market.resolved) {
+                            openTradeModal(market.id, 'yes');
+                        }
+                    }
+                };
+                
+                grid.appendChild(card);
+            });
+        }
+
+        function getCategoryColor(category) {
+            const map = {
+                'Politics': 'bg-indigo-500/10 text-indigo-400',
+                'Crypto': 'bg-orange-500/10 text-orange-400',
+                'Sports': 'bg-emerald-500/10 text-emerald-400',
+                'Tech': 'bg-sky-500/10 text-sky-400',
+                'Entertainment': 'bg-pink-500/10 text-pink-400',
+                'Economy': 'bg-amber-500/10 text-amber-400'
+            };
+            return map[category] || 'bg-slate-700 text-slate-300';
+        }
+
+        // Filter + sort markets
+        function filterMarkets() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const sortMode = document.getElementById('sort-select').value;
+
+            let filtered = markets.filter(market => {
+                const matchesSearch = market.question.toLowerCase().includes(searchTerm);
+                const matchesCategory = currentFilter === 'all' || market.category === currentFilter;
+                return matchesSearch && matchesCategory;
+            });
+
+            // Sort
+            if (sortMode === 'volume') {
+                filtered.sort((a, b) => b.volume - a.volume);
+            } else if (sortMode === 'newest') {
+                filtered.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+            } else if (sortMode === 'price-high') {
+                filtered.sort((a, b) => b.yesPrice - a.yesPrice);
+            }
+
+            renderMarkets(filtered);
+        }
+
+        // Update stats
+        function updateStats() {
+            const active = markets.filter(m => !m.resolved).length;
+            document.getElementById('active-markets').textContent = active;
+            
+            const totalVol = markets.reduce((sum, m) => sum + m.volume, 0);
+            document.getElementById('total-volume').textContent = formatLargeNumber(totalVol);
+        }
+
+        // Connect wallet simulation
+        function connectWallet() {
+            const btn = document.getElementById('connect-btn');
+            const text = document.getElementById('connect-text');
+
+            if (!user.connected) {
+                user.connected = true;
+                user.address = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
+                
+                btn.innerHTML = `
+                    <div class="flex items-center gap-x-2">
+                        <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                        <span class="font-mono text-xs">${user.address}</span>
+                    </div>
+                `;
+                btn.classList.remove('bg-white', 'text-slate-900');
+                btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600');
+                
+                showToast('Wallet connected successfully', 'success');
+                updatePortfolio();
+                saveUserState();
+            } else {
+                // Disconnect
+                if (confirm('Disconnect wallet?')) {
+                    user.connected = false;
+                    user.address = null;
+                    btn.innerHTML = `<i class="fa-solid fa-wallet"></i> <span id="connect-text">Connect Wallet</span>`;
+                    btn.classList.add('bg-white', 'text-slate-900');
+                    btn.classList.remove('bg-slate-800', 'text-white', 'border', 'border-slate-600');
+                    document.getElementById('connect-text').textContent = 'Connect Wallet';
+                }
+            }
+        }
+
+        // Open trade modal
+        function openTradeModal(marketId, side) {
+            const market = markets.find(m => m.id === marketId);
+            if (!market || market.resolved) return;
+
+            currentTrade = { marketId, side };
+
+            // Populate modal
+            document.getElementById('modal-question').textContent = market.question;
+            document.getElementById('modal-category').innerHTML = `<span class="px-2.5 py-0.5 text-xs rounded-xl ${getCategoryColor(market.category)}">${market.category}</span>`;
+            document.getElementById('modal-end-date').innerHTML = `<i class="fa-regular fa-clock mr-1"></i> Ends in ${getDaysLeft(market.endDate)}`;
+
+            // Outcome buttons
+            const outcomeContainer = document.getElementById('outcome-buttons');
+            outcomeContainer.innerHTML = `
+                <button onclick="selectOutcome('yes')" id="outcome-yes-btn"
+                        class="flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all ${side === 'yes' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-600 hover:border-emerald-400/60'}">
+                    <div>
+                        <div class="text-xs font-medium">YES</div>
+                        <div class="text-2xl font-semibold tabular-nums">${formatPrice(market.yesPrice)}</div>
+                    </div>
+                </button>
+                <button onclick="selectOutcome('no')" id="outcome-no-btn"
+                        class="flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all ${side === 'no' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'border-slate-600 hover:border-rose-400/60'}">
+                    <div>
+                        <div class="text-xs font-medium">NO</div>
+                        <div class="text-2xl font-semibold tabular-nums">${formatPrice(1 - market.yesPrice)}</div>
+                    </div>
+                </button>
+            `;
+
+            // Set initial price display
+            updateModalPrice(market, side);
+
+            // Set balance
+            document.getElementById('modal-balance').innerHTML = user.connected ? 
+                `${formatCurrency(user.balance)} <span class="text-xs text-slate-400">USDC</span>` : 
+                `<span class="text-rose-400">Connect wallet to trade</span>`;
+
+            // Clear amount and preview
+            document.getElementById('trade-amount').value = '';
+            document.getElementById('preview-shares').textContent = '0.00 shares';
+            document.getElementById('preview-payout').textContent = '$0.00';
+            document.getElementById('preview-profit').textContent = '+$0.00 (+0%)';
+            document.getElementById('preview-avg-price').textContent = '—';
+
+            // Action button
+            const actionBtn = document.getElementById('trade-action-btn');
+            actionBtn.innerHTML = `
+                <span>Buy ${side.toUpperCase()} Shares</span>
+            `;
+            actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${side === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
+
+            // Show modal
+            document.getElementById('trade-modal').classList.remove('hidden');
+            document.getElementById('trade-modal').classList.add('flex');
+
+            // Focus amount
+            setTimeout(() => {
+                document.getElementById('trade-amount').focus();
+            }, 300);
+        }
+
+        function selectOutcome(newSide) {
+            const market = markets.find(m => m.id === currentTrade.marketId);
+            if (!market) return;
+
+            currentTrade.side = newSide;
+
+            // Update buttons styles
+            const yesBtn = document.getElementById('outcome-yes-btn');
+            const noBtn = document.getElementById('outcome-no-btn');
+
+            if (newSide === 'yes') {
+                yesBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all bg-emerald-500/20 border-emerald-500 text-emerald-400`;
+                noBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all border-slate-600 hover:border-rose-400/60`;
+            } else {
+                yesBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all border-slate-600 hover:border-emerald-400/60`;
+                noBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all bg-rose-500/20 border-rose-500 text-rose-400`;
+            }
+
+            updateModalPrice(market, newSide);
+
+            // Update action button text
+            const actionBtn = document.getElementById('trade-action-btn');
+            actionBtn.innerHTML = `Buy ${newSide.toUpperCase()} Shares`;
+            actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${newSide === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
+            
+            // Recalculate preview if amount entered
+            calculateTradePreview();
+        }
+
+        function updateModalPrice(market, side) {
+            const priceEl = document.getElementById('modal-current-price');
+            const probEl = document.getElementById('modal-probability');
+
+            const price = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+            
+            priceEl.innerHTML = formatPrice(price);
+            probEl.innerHTML = Math.round(price * 100) + '%';
+        }
+
+        function calculateTradePreview() {
+            if (!currentTrade.marketId) return;
+
+            const market = markets.find(m => m.id === currentTrade.marketId);
+            const amountInput = parseFloat(document.getElementById('trade-amount').value) || 0;
+            const side = currentTrade.side;
+
+            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+
+            const shares = amountInput / currentPrice;
+            const potentialPayout = shares * 1; // Each share pays $1 if wins
+            const profit = potentialPayout - amountInput;
+            const roi = amountInput > 0 ? ((profit / amountInput) * 100) : 0;
+
+            document.getElementById('preview-shares').innerHTML = `${shares.toFixed(2)} shares`;
+            document.getElementById('preview-avg-price').innerHTML = formatPrice(currentPrice);
+            document.getElementById('preview-payout').innerHTML = formatCurrency(potentialPayout);
+            document.getElementById('preview-profit').innerHTML = `+${formatCurrency(profit)} (+${roi.toFixed(0)}%)`;
+        }
+
+        function setMaxAmount() {
+            if (!user.connected) {
+                showToast('Please connect your wallet first', 'error');
+                return;
+            }
+            document.getElementById('trade-amount').value = user.balance.toFixed(2);
+            calculateTradePreview();
+        }
+
+        function executeTrade() {
+            if (!user.connected) {
+                showToast('Please connect your wallet to trade', 'error');
+                return;
+            }
+
+            const amount = parseFloat(document.getElementById('trade-amount').value);
+            if (!amount || amount <= 0) {
+                showToast('Please enter a valid amount', 'error');
+                return;
+            }
+
+            const market = markets.find(m => m.id === currentTrade.marketId);
+            const side = currentTrade.side;
+            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+
+            if (amount > user.balance) {
+                showToast('Insufficient balance', 'error');
+                return;
+            }
+
+            const sharesBought = amount / currentPrice;
+
+            // Update user balance
+            user.balance -= amount;
+
+            // Update or create position
+            if (!user.positions[market.id]) {
+                user.positions[market.id] = { yes: 0, no: 0 };
+            }
+            user.positions[market.id][side] = (user.positions[market.id][side] || 0) + sharesBought;
+
+            // Simple price impact (constant product style simulation)
+            const impact = (amount / 120000); // $120k moves price ~1%
+            if (side === 'yes') {
+                market.yesPrice = Math.min(0.98, market.yesPrice + impact);
+            } else {
+                market.yesPrice = Math.max(0.02, market.yesPrice - impact);
+            }
+            market.volume += amount;
+
+            // Save everything
+            saveMarkets();
+            saveUserState();
+
+            // Close modal
+            closeTradeModal();
+
+            // Success feedback
+            showToast(`Bought ${sharesBought.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(amount)}`, 'success');
+
+            // Refresh UI
+            filterMarkets();
+            updateStats();
+            updatePortfolio();
+        }
+
+        function closeTradeModal() {
+            const modal = document.getElementById('trade-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+            currentTrade = { marketId: null, side: null };
+        }
+
+        // Portfolio functions
+        function switchTab(tab) {
+            const marketsView = document.getElementById('markets-view');
+            const portfolioView = document.getElementById('portfolio-view');
+            const tabMarkets = document.getElementById('tab-markets');
+            const tabPortfolio = document.getElementById('tab-portfolio');
+
+            if (tab === 'markets') {
+                marketsView.classList.remove('hidden');
+                portfolioView.classList.add('hidden');
+                tabMarkets.classList.add('nav-active');
+                tabPortfolio.classList.remove('nav-active');
+            } else {
+                marketsView.classList.add('hidden');
+                portfolioView.classList.remove('hidden');
+                tabMarkets.classList.remove('nav-active');
+                tabPortfolio.classList.add('nav-active');
+                updatePortfolio();
+            }
+        }
+
+        function updatePortfolio() {
+            if (!user.connected) {
+                document.getElementById('portfolio-balance').textContent = '$0.00';
+                document.getElementById('portfolio-value').textContent = '$0.00';
+                document.getElementById('positions-list').innerHTML = '';
+                document.getElementById('no-positions').classList.remove('hidden');
+                document.getElementById('portfolio-count').textContent = '0 active';
+                return;
+            }
+
+            document.getElementById('portfolio-balance').textContent = formatCurrency(user.balance);
+
+            // Calculate positions value
+            let totalValue = 0;
+            let activeCount = 0;
+            const positionsHTML = [];
+
+            Object.keys(user.positions).forEach(marketIdStr => {
+                const marketId = parseInt(marketIdStr);
+                const market = markets.find(m => m.id === marketId);
+                if (!market) return;
+
+                const pos = user.positions[marketId];
+                const yesShares = pos.yes || 0;
+                const noShares = pos.no || 0;
+
+                if (yesShares === 0 && noShares === 0) return;
+
+                activeCount++;
+
+                if (!market.resolved) {
+                    // Current estimated value (if immediately resolved)
+                    const yesValue = yesShares * market.yesPrice;
+                    const noValue = noShares * (1 - market.yesPrice);
+                    totalValue += yesValue + noValue;
+
+                    const positionHTML = `
+                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1 pr-4">
+                                    <div class="text-xs text-slate-400 mb-1">${market.category} • ${getDaysLeft(market.endDate)}</div>
+                                    <div class="font-semibold text-sm leading-tight">${market.question}</div>
+                                </div>
+                                
+                                <div class="text-right text-xs whitespace-nowrap">
+                                    <div class="font-mono text-emerald-400">${formatPrice(market.yesPrice)} Yes</div>
+                                    <div class="font-mono text-rose-400">${formatPrice(1-market.yesPrice)} No</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4 text-sm">
+                                ${yesShares > 0 ? `
+                                <div>
+                                    <div class="flex justify-between">
+                                        <div class="text-emerald-400 text-xs">YES SHARES</div>
+                                        <div class="font-semibold tabular-nums">${yesShares.toFixed(1)}</div>
+                                    </div>
+                                    <div class="text-xs text-emerald-300/70 mt-0.5">Potential: ${formatCurrency(yesShares)}</div>
+                                </div>` : ''}
+
+                                ${noShares > 0 ? `
+                                <div>
+                                    <div class="flex justify-between">
+                                        <div class="text-rose-400 text-xs">NO SHARES</div>
+                                        <div class="font-semibold tabular-nums">${noShares.toFixed(1)}</div>
+                                    </div>
+                                    <div class="text-xs text-rose-300/70 mt-0.5">Potential: ${formatCurrency(noShares)}</div>
+                                </div>` : ''}
+                            </div>
+
+                            <div class="flex gap-x-2 mt-4">
+                                ${yesShares > 0 ? `
+                                <button onclick="sellPosition(${marketId}, 'yes')" 
+                                        class="flex-1 text-xs py-2 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-700/60 rounded-2xl transition-colors">
+                                    Sell Yes
+                                </button>` : ''}
+                                
+                                ${noShares > 0 ? `
+                                <button onclick="sellPosition(${marketId}, 'no')" 
+                                        class="flex-1 text-xs py-2 bg-rose-900/30 hover:bg-rose-900/50 border border-rose-700/60 rounded-2xl transition-colors">
+                                    Sell No
+                                </button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                    positionsHTML.push(positionHTML);
+                } else {
+                    // Resolved market position
+                    const winningSide = market.winner;
+                    const winningShares = pos[winningSide] || 0;
+                    const winnings = winningShares * 1;
+
+                    if (winningShares > 0) {
+                        totalValue += winnings;
+                    }
+
+                    const positionHTML = `
+                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 opacity-90">
+                            <div class="flex justify-between">
+                                <div>
+                                    <span class="text-xs px-2.5 py-0.5 rounded-xl bg-slate-700 text-slate-300">RESOLVED</span>
+                                </div>
+                                <div class="text-xs text-slate-400">${market.winner.toUpperCase()} WON</div>
+                            </div>
+                            <div class="mt-2 font-medium">${market.question}</div>
+                            
+                            <div class="mt-3 text-sm">
+                                ${winningShares > 0 ? 
+                                    `<span class="font-semibold text-emerald-400">You won ${formatCurrency(winnings)} from ${winningShares.toFixed(1)} shares</span>` : 
+                                    `<span class="text-slate-400">Position closed — no winnings</span>`}
+                            </div>
+                        </div>
+                    `;
+                    positionsHTML.push(positionHTML);
+                }
+            });
+
+            document.getElementById('portfolio-value').textContent = formatCurrency(totalValue);
+            document.getElementById('portfolio-count').textContent = `${activeCount} active`;
+
+            const listContainer = document.getElementById('positions-list');
+            const noPos = document.getElementById('no-positions');
+
+            if (positionsHTML.length > 0) {
+                listContainer.innerHTML = positionsHTML.join('');
+                noPos.classList.add('hidden');
+            } else {
+                listContainer.innerHTML = '';
+                noPos.classList.remove('hidden');
+            }
+        }
+
+        function sellPosition(marketId, side) {
+            const market = markets.find(m => m.id === marketId);
+            if (!market || market.resolved) return;
+
+            const pos = user.positions[marketId];
+            if (!pos || !pos[side]) return;
+
+            const currentShares = pos[side];
+            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+
+            // Ask how many shares to sell
+            const toSellStr = prompt(`You have ${currentShares.toFixed(2)} ${side.toUpperCase()} shares.\n\nHow many would you like to sell?`, currentShares.toFixed(2));
+            if (!toSellStr) return;
+
+            const toSell = parseFloat(toSellStr);
+            if (isNaN(toSell) || toSell <= 0 || toSell > currentShares) {
+                showToast('Invalid amount', 'error');
+                return;
+            }
+
+            const proceeds = toSell * currentPrice;
+
+            // Update state
+            user.balance += proceeds;
+            pos[side] -= toSell;
+
+            if (pos[side] < 0.001) pos[side] = 0; // Clean up tiny amounts
+
+            // Price impact (selling yes pushes price down)
+            const impact = (proceeds / 120000);
+            if (side === 'yes') {
+                market.yesPrice = Math.max(0.02, market.yesPrice - impact);
+            } else {
+                market.yesPrice = Math.min(0.98, market.yesPrice + impact);
+            }
+
+            market.volume += proceeds; // treat as traded volume
+
+            saveMarkets();
+            saveUserState();
+
+            showToast(`Sold ${toSell.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(proceeds)}`, 'success');
+
+            // Refresh
+            filterMarkets();
+            updatePortfolio();
+        }
+
+        function claimAllWinnings() {
+            let claimed = 0;
+
+            Object.keys(user.positions).forEach(marketIdStr => {
+                const marketId = parseInt(marketIdStr);
+                const market = markets.find(m => m.id === marketId);
+                if (!market || !market.resolved) return;
+
+                const pos = user.positions[marketId];
+                const winningSide = market.winner;
+                const winningShares = pos[winningSide] || 0;
+
+                if (winningShares > 0) {
+                    const winnings = winningShares;
+                    user.balance += winnings;
+                    claimed += winnings;
+                    pos[winningSide] = 0;
+                }
+            });
+
+            if (claimed > 0) {
+                saveUserState();
+                showToast(`Claimed ${formatCurrency(claimed)} in winnings!`, 'success');
+                updatePortfolio();
+            } else {
+                showToast('No winnings to claim', 'info');
+            }
+        }
+
+        // Create new market
+        function showCreateModal() {
+            document.getElementById('create-modal').classList.remove('hidden');
+            document.getElementById('create-modal').classList.add('flex');
+            
+            // Set default date to 3 months from now
+            const dateInput = document.getElementById('new-end-date');
+            const future = new Date('2026-08-19');
+            dateInput.value = future.toISOString().split('T')[0];
+        }
+
+        function closeCreateModal() {
+            const modal = document.getElementById('create-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function updatePriceLabel() {
+            const val = document.getElementById('new-yes-price').value;
+            document.getElementById('new-yes-price-label').textContent = val;
+        }
+
+        function createNewMarket() {
+            const question = document.getElementById('new-question').value.trim();
+            if (!question) {
+                alert('Please enter a market question');
+                return;
+            }
+
+            const category = document.getElementById('new-category').value;
+            const endDate = document.getElementById('new-end-date').value;
+            const yesPriceInput = parseInt(document.getElementById('new-yes-price').value) / 100;
+
+            const newMarket = {
+                id: Date.now(),
+                question: question,
+                category: category,
+                yesPrice: yesPriceInput,
+                volume: 0,
+                endDate: endDate || '2026-12-31',
+                liquidity: Math.floor(Math.random() * 80000) + 20000,
+                traders: Math.floor(Math.random() * 300) + 40,
+                resolved: false,
+                winner: null
+            };
+
+            markets.unshift(newMarket); // Add to top
+            saveMarkets();
+
+            closeCreateModal();
+            filterMarkets();
+            updateStats();
+
+            showToast('New market created successfully!', 'success');
+
+            // Clear form
+            document.getElementById('new-question').value = '';
+        }
+
+        // Admin resolve (demo feature)
+        function resolveMarket(marketId, forcedWinner = null) {
+            const market = markets.find(m => m.id === marketId);
+            if (!market) return;
+
+            if (!forcedWinner) {
+                const choice = prompt('Resolve market as YES or NO?\nType "yes" or "no"', 'yes');
+                if (!choice || (choice.toLowerCase() !== 'yes' && choice.toLowerCase() !== 'no')) return;
+                forcedWinner = choice.toLowerCase();
+            }
+
+            market.resolved = true;
+            market.winner = forcedWinner;
+
+            // Auto settle user position if exists
+            if (user.positions[marketId]) {
+                const pos = user.positions[marketId];
+                const winningShares = pos[forcedWinner] || 0;
+                if (winningShares > 0) {
+                    user.balance += winningShares;
+                    showToast(`Market resolved! You won ${formatCurrency(winningShares)}`, 'success');
+                }
+                // Clear losing side
+                pos.yes = 0;
+                pos.no = 0;
+            }
+
+            saveMarkets();
+            saveUserState();
+
+            filterMarkets();
+            updatePortfolio();
+        }
+
+        // Toast notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            
+            const toast = document.createElement('div');
+            let bg = 'bg-emerald-600';
+            let icon = 'fa-check-circle';
+            
+            if (type === 'error') {
+                bg = 'bg-rose-600';
+                icon = 'fa-exclamation-circle';
+            } else if (type === 'info') {
+                bg = 'bg-sky-600';
+                icon = 'fa-info-circle';
+            }
+
+            toast.className = `${bg} text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-x-3 max-w-xs text-sm`;
+            toast.innerHTML = `
+                <i class="fa-solid ${icon}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transition = 'all 0.3s ease';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 200);
+            }, 2800);
+        }
+
+        // Keyboard shortcuts
+        function setupKeyboardShortcuts() {
+            document.addEventListener('keydown', function(e) {
+                if (e.key === '/' && document.activeElement.tagName === 'BODY') {
+                    e.preventDefault();
+                    document.getElementById('search-input').focus();
+                }
+                
+                if (e.key.toLowerCase() === '?' && document.getElementById('trade-modal').classList.contains('hidden') === false) {
+                    e.preventDefault();
+                    const amountInput = document.getElementById('trade-amount');
+                    amountInput.focus();
+                    amountInput.select();
+                }
+            });
+
+            // Easter egg: press "r" on markets to refresh
+            document.addEventListener('keypress', function(e) {
+                if (e.key.toLowerCase() === 'r' && document.getElementById('markets-view').classList.contains('hidden') === false) {
+                    filterMarkets();
+                }
+            });
+        }
+
+        // Initialize everything
+        function initializeApp() {
+            initTailwind();
+            initMarkets();
+
+            // Initial render
+            renderCategoryFilters();
+            filterMarkets();
+            updateStats();
+
+            // Restore wallet UI if previously connected
+            if (user.connected && user.address) {
+                const btn = document.getElementById('connect-btn');
+                btn.innerHTML = `
+                    <div class="flex items-center gap-x-2">
+                        <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
+                        <span class="font-mono text-xs">${user.address}</span>
+                    </div>
+                `;
+                btn.classList.remove('bg-white', 'text-slate-900');
+                btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600');
+            }
+
+            // Initial portfolio update
+            updatePortfolio();
+
+            // Event listeners
+            document.getElementById('search-input').addEventListener('input', filterMarkets);
+            
+            // Bonus: Make stats clickable to show fun fact
+            const statsBar = document.querySelector('.border-b.border-slate-800.bg-slate-900\\/50');
+            if (statsBar) {
+                statsBar.addEventListener('click', () => {
+                    showToast('This is a fully functional frontend demo running 100% in your browser on Arc.', 'info');
+                });
+            }
+
+            setupKeyboardShortcuts();
+
+            // Welcome toast for first time
+            setTimeout(() => {
+                if (!localStorage.getItem('arcMarkets')) {
+                    showToast('Welcome to the Polymarket demo on Arc! Connect wallet to start trading.', 'info');
+                }
+            }, 1800);
+
+            console.log('%c[Arc Demo] Polymarket-like prediction market initialized successfully.', 'color:#64748b');
+        }
+
+        // Boot the app
+        window.onload = initializeApp;
+    </script>
+</body>
+</html>
