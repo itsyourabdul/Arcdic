@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Polymarket • Arc Demo</title>
+    <title>Arcdic • Prediction Markets</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
@@ -94,6 +94,10 @@
             margin-left: auto;
             margin-right: auto;
         }
+
+        .wallet-btn {
+            transition: all 0.2s ease;
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200">
@@ -107,8 +111,8 @@
                         <i class="fa-solid fa-chart-line text-white text-3xl"></i>
                     </div>
                     <div>
-                        <span class="logo-font text-3xl font-semibold tracking-tighter">polymarket</span>
-                        <span class="ml-1.5 px-2 py-0.5 text-[10px] font-mono tracking-[2px] bg-slate-800 text-slate-400 rounded-full align-super">ARC</span>
+                        <span class="logo-font text-3xl font-semibold tracking-tighter">arcdic</span>
+                        <span class="ml-1.5 px-2 py-0.5 text-[10px] font-mono tracking-[2px] bg-emerald-500/10 text-emerald-400 rounded-full align-super">TESTNET</span>
                     </div>
                 </div>
 
@@ -147,7 +151,7 @@
                     <!-- Connect Wallet -->
                     <button onclick="connectWallet()" 
                             id="connect-btn"
-                            class="flex items-center gap-x-2 px-5 py-2 bg-white text-slate-900 hover:bg-slate-100 transition-all font-semibold text-sm rounded-3xl shadow-sm active:scale-[0.985]">
+                            class="wallet-btn flex items-center gap-x-2 px-5 py-2 bg-white text-slate-900 hover:bg-slate-100 transition-all font-semibold text-sm rounded-3xl shadow-sm active:scale-[0.985]">
                         <i class="fa-solid fa-wallet"></i>
                         <span id="connect-text">Connect Wallet</span>
                     </button>
@@ -178,7 +182,7 @@
                 <div class="flex items-center gap-x-2 text-xs">
                     <div class="flex items-center gap-x-1.5 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-2xl">
                         <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                        <span class="font-medium">Live on Arc</span>
+                        <span class="font-medium">Live on Arc Testnet</span>
                     </div>
                     <button onclick="showCreateModal()" 
                             class="flex items-center gap-x-2 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 transition-colors text-xs font-semibold rounded-2xl border border-slate-700">
@@ -242,7 +246,7 @@
                     <div>
                         <div class="text-xs text-slate-400 tracking-wider">POSITIONS VALUE (IF RESOLVED)</div>
                         <div class="text-4xl font-semibold tabular-nums mt-1 text-emerald-400" id="portfolio-value">$0.00</div>
-                        <div class="text-xs text-slate-500 mt-1">Based on current share prices</div>
+                        <div class="text-xs text-slate-500 mt-1">Based on current share prices • Arc Testnet</div>
                     </div>
                     <div class="flex items-end justify-end">
                         <button onclick="claimAllWinnings()" 
@@ -360,7 +364,7 @@
                 </button>
                 
                 <div class="text-center mt-3">
-                    <div class="text-[10px] text-slate-500">This is a simulated trade on the Arc demo. No real funds are used.</div>
+                    <div class="text-[10px] text-slate-500">This is a simulated trade on Arcdic • Arc Testnet. No real funds are moved.</div>
                 </div>
             </div>
         </div>
@@ -372,7 +376,7 @@
         <div onclick="event.stopImmediatePropagation()" 
              class="modal bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6">
             <div class="flex justify-between items-center mb-5">
-                <div class="font-semibold text-xl">Create New Market</div>
+                <div class="font-semibold text-xl">Create New Market on Arcdic</div>
                 <button onclick="closeCreateModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
             
@@ -452,11 +456,12 @@
             positions: {} // { marketId: { yes: number, no: number } }
         };
         let currentFilter = 'all';
-        let currentTrade = { marketId: null, side: null }; // For modal state
+        let currentTrade = { marketId: null, side: null };
+        let provider = null;
 
         // Initial sample markets
         function initMarkets() {
-            const savedMarkets = localStorage.getItem('arcMarkets');
+            const savedMarkets = localStorage.getItem('arcdicMarkets');
             if (savedMarkets) {
                 markets = JSON.parse(savedMarkets);
             } else {
@@ -548,26 +553,35 @@
                 ];
                 saveMarkets();
             }
-
-            // Load user state
-            const savedUser = localStorage.getItem('arcUserState');
-            if (savedUser) {
-                const parsed = JSON.parse(savedUser);
-                user = { ...user, ...parsed };
-            }
         }
 
         function saveMarkets() {
-            localStorage.setItem('arcMarkets', JSON.stringify(markets));
+            localStorage.setItem('arcdicMarkets', JSON.stringify(markets));
+        }
+
+        function getUserStorageKey() {
+            return user.address ? `arcdicUser_${user.address.toLowerCase()}` : 'arcdicUser_guest';
         }
 
         function saveUserState() {
-            localStorage.setItem('arcUserState', JSON.stringify({
-                connected: user.connected,
-                address: user.address,
+            const key = getUserStorageKey();
+            localStorage.setItem(key, JSON.stringify({
                 balance: user.balance,
                 positions: user.positions
             }));
+        }
+
+        function loadUserStateForAddress(address) {
+            const key = `arcdicUser_${address.toLowerCase()}`;
+            const saved = localStorage.getItem(key);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                user.balance = parsed.balance ?? 10000;
+                user.positions = parsed.positions ?? {};
+            } else {
+                user.balance = 10000;
+                user.positions = {};
+            }
         }
 
         // Format helpers
@@ -591,7 +605,7 @@
 
         function getDaysLeft(endDateStr) {
             const end = new Date(endDateStr);
-            const now = new Date('2026-05-19'); // Current simulated date
+            const now = new Date('2026-05-19');
             const diffTime = end - now;
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             if (diffDays < 0) return 'Ended';
@@ -728,7 +742,6 @@
                     ${actionHTML}
                 `;
                 
-                // Make whole card clickable except buttons
                 card.onclick = (e) => {
                     if (!e.target.closest('button')) {
                         if (!market.resolved) {
@@ -764,7 +777,6 @@
                 return matchesSearch && matchesCategory;
             });
 
-            // Sort
             if (sortMode === 'volume') {
                 filtered.sort((a, b) => b.volume - a.volume);
             } else if (sortMode === 'newest') {
@@ -785,53 +797,211 @@
             document.getElementById('total-volume').textContent = formatLargeNumber(totalVol);
         }
 
-        // Connect wallet simulation
-        function connectWallet() {
-            const btn = document.getElementById('connect-btn');
-            const text = document.getElementById('connect-text');
+        // ==================== ARC TESTNET WALLET CONNECTION ====================
+        const ARC_CHAIN_ID = '0x4d0f02'; // 5042002 in hex
+        const ARC_RPC = 'https://rpc.testnet.arc.network';
+        const ARC_EXPLORER = 'https://testnet.arcscan.app';
+        const ARC_CHAIN_NAME = 'Arc Testnet';
+        const ARC_CURRENCY = { name: 'USDC', symbol: 'USDC', decimals: 6 };
 
-            if (!user.connected) {
-                user.connected = true;
-                user.address = '0x' + Math.random().toString(16).slice(2, 10) + '...' + Math.random().toString(16).slice(2, 6);
+        async function ensureArcNetwork() {
+            if (!window.ethereum) throw new Error('No wallet found');
+
+            try {
+                const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
                 
-                btn.innerHTML = `
-                    <div class="flex items-center gap-x-2">
-                        <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
-                        <span class="font-mono text-xs">${user.address}</span>
-                    </div>
-                `;
-                btn.classList.remove('bg-white', 'text-slate-900');
-                btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600');
-                
-                showToast('Wallet connected successfully', 'success');
-                updatePortfolio();
-                saveUserState();
-            } else {
-                // Disconnect
-                if (confirm('Disconnect wallet?')) {
-                    user.connected = false;
-                    user.address = null;
-                    btn.innerHTML = `<i class="fa-solid fa-wallet"></i> <span id="connect-text">Connect Wallet</span>`;
-                    btn.classList.add('bg-white', 'text-slate-900');
-                    btn.classList.remove('bg-slate-800', 'text-white', 'border', 'border-slate-600');
-                    document.getElementById('connect-text').textContent = 'Connect Wallet';
+                if (currentChainId === ARC_CHAIN_ID) {
+                    return true;
                 }
+
+                try {
+                    await window.ethereum.request({
+                        method: 'wallet_switchEthereumChain',
+                        params: [{ chainId: ARC_CHAIN_ID }],
+                    });
+                    return true;
+                } catch (switchError) {
+                    if (switchError.code === 4902) {
+                        await addArcNetwork();
+                        return true;
+                    } else {
+                        throw switchError;
+                    }
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+                throw new Error('Failed to switch to Arc Testnet');
             }
         }
 
-        // Open trade modal
+        async function addArcNetwork() {
+            await window.ethereum.request({
+                method: 'wallet_addEthereumChain',
+                params: [{
+                    chainId: ARC_CHAIN_ID,
+                    chainName: ARC_CHAIN_NAME,
+                    nativeCurrency: ARC_CURRENCY,
+                    rpcUrls: [ARC_RPC],
+                    blockExplorerUrls: [ARC_EXPLORER]
+                }]
+            });
+        }
+
+        function updateWalletUI(address) {
+            const btn = document.getElementById('connect-btn');
+            const shortAddr = address.slice(0, 6) + '...' + address.slice(-4);
+            
+            btn.innerHTML = `
+                <div class="flex items-center gap-x-2">
+                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
+                    <span class="font-mono text-xs">${shortAddr}</span>
+                    <i class="fa-solid fa-chevron-down text-xs ml-1 opacity-70"></i>
+                </div>
+            `;
+            
+            btn.onclick = disconnectWallet;
+            btn.classList.remove('bg-white', 'text-slate-900', 'hover:bg-slate-100');
+            btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600', 'hover:bg-slate-700');
+        }
+
+        async function connectWallet() {
+            const btn = document.getElementById('connect-btn');
+
+            if (!window.ethereum) {
+                showToast('No wallet detected. Please install MetaMask, Rabby, or Coinbase Wallet.', 'error');
+                setTimeout(() => {
+                    if (confirm('Would you like to open MetaMask download page?')) {
+                        window.open('https://metamask.io/download/', '_blank');
+                    }
+                }, 800);
+                return;
+            }
+
+            try {
+                const accounts = await window.ethereum.request({ 
+                    method: 'eth_requestAccounts' 
+                });
+
+                if (!accounts || accounts.length === 0) {
+                    showToast('No accounts returned from wallet', 'error');
+                    return;
+                }
+
+                await ensureArcNetwork();
+
+                const address = accounts[0];
+                
+                user.connected = true;
+                user.address = address;
+
+                loadUserStateForAddress(address);
+
+                updateWalletUI(address);
+
+                showToast('Connected to Arcdic on Arc Testnet', 'success');
+                
+                updatePortfolio();
+                saveUserState();
+
+                setupWalletListeners();
+
+            } catch (err) {
+                console.error('Connection error:', err);
+                let msg = 'Failed to connect wallet';
+                if (err.code === 4001) msg = 'Connection rejected by user';
+                if (err.message?.includes('User denied')) msg = 'Connection rejected';
+                showToast(msg, 'error');
+            }
+        }
+
+        function disconnectWallet() {
+            if (!confirm('Disconnect wallet from Arcdic?')) return;
+
+            user.connected = false;
+            user.address = null;
+
+            const btn = document.getElementById('connect-btn');
+            btn.innerHTML = `<i class="fa-solid fa-wallet"></i> <span id="connect-text">Connect Wallet</span>`;
+            btn.onclick = connectWallet;
+            btn.classList.remove('bg-slate-800', 'text-white', 'border', 'border-slate-600', 'hover:bg-slate-700');
+            btn.classList.add('bg-white', 'text-slate-900', 'hover:bg-slate-100');
+
+            document.getElementById('portfolio-balance').textContent = '$0.00';
+            document.getElementById('portfolio-value').textContent = '$0.00';
+            document.getElementById('positions-list').innerHTML = '';
+            document.getElementById('no-positions').classList.remove('hidden');
+            document.getElementById('portfolio-count').textContent = '0 active';
+
+            showToast('Wallet disconnected', 'info');
+        }
+
+        function setupWalletListeners() {
+            if (!window.ethereum) return;
+
+            window.ethereum.removeAllListeners?.('accountsChanged');
+            window.ethereum.removeAllListeners?.('chainChanged');
+
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (!accounts || accounts.length === 0) {
+                    disconnectWallet();
+                } else if (accounts[0].toLowerCase() !== (user.address || '').toLowerCase()) {
+                    user.address = accounts[0];
+                    loadUserStateForAddress(accounts[0]);
+                    updateWalletUI(accounts[0]);
+                    updatePortfolio();
+                    showToast('Switched to new account', 'info');
+                }
+            });
+
+            window.ethereum.on('chainChanged', (chainId) => {
+                if (chainId !== ARC_CHAIN_ID) {
+                    showToast('Please switch back to Arc Testnet', 'info');
+                    setTimeout(() => {
+                        ensureArcNetwork().catch(() => {});
+                    }, 800);
+                } else {
+                    showToast('Switched to Arc Testnet', 'success');
+                }
+            });
+        }
+
+        async function checkExistingConnection() {
+            if (!window.ethereum) return;
+
+            try {
+                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                if (accounts && accounts.length > 0) {
+                    const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
+                    
+                    if (currentChain === ARC_CHAIN_ID) {
+                        user.connected = true;
+                        user.address = accounts[0];
+                        loadUserStateForAddress(accounts[0]);
+                        
+                        const btn = document.getElementById('connect-btn');
+                        updateWalletUI(accounts[0]);
+                        
+                        setupWalletListeners();
+                        updatePortfolio();
+                    }
+                }
+            } catch (e) {
+                console.log('No existing connection');
+            }
+        }
+
+        // ==================== END WALLET LOGIC ====================
+
         function openTradeModal(marketId, side) {
             const market = markets.find(m => m.id === marketId);
             if (!market || market.resolved) return;
 
             currentTrade = { marketId, side };
 
-            // Populate modal
             document.getElementById('modal-question').textContent = market.question;
             document.getElementById('modal-category').innerHTML = `<span class="px-2.5 py-0.5 text-xs rounded-xl ${getCategoryColor(market.category)}">${market.category}</span>`;
             document.getElementById('modal-end-date').innerHTML = `<i class="fa-regular fa-clock mr-1"></i> Ends in ${getDaysLeft(market.endDate)}`;
 
-            // Outcome buttons
             const outcomeContainer = document.getElementById('outcome-buttons');
             outcomeContainer.innerHTML = `
                 <button onclick="selectOutcome('yes')" id="outcome-yes-btn"
@@ -850,33 +1020,25 @@
                 </button>
             `;
 
-            // Set initial price display
             updateModalPrice(market, side);
 
-            // Set balance
             document.getElementById('modal-balance').innerHTML = user.connected ? 
                 `${formatCurrency(user.balance)} <span class="text-xs text-slate-400">USDC</span>` : 
                 `<span class="text-rose-400">Connect wallet to trade</span>`;
 
-            // Clear amount and preview
             document.getElementById('trade-amount').value = '';
             document.getElementById('preview-shares').textContent = '0.00 shares';
             document.getElementById('preview-payout').textContent = '$0.00';
             document.getElementById('preview-profit').textContent = '+$0.00 (+0%)';
             document.getElementById('preview-avg-price').textContent = '—';
 
-            // Action button
             const actionBtn = document.getElementById('trade-action-btn');
-            actionBtn.innerHTML = `
-                <span>Buy ${side.toUpperCase()} Shares</span>
-            `;
+            actionBtn.innerHTML = `<span>Buy ${side.toUpperCase()} Shares</span>`;
             actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${side === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
 
-            // Show modal
             document.getElementById('trade-modal').classList.remove('hidden');
             document.getElementById('trade-modal').classList.add('flex');
 
-            // Focus amount
             setTimeout(() => {
                 document.getElementById('trade-amount').focus();
             }, 300);
@@ -888,7 +1050,6 @@
 
             currentTrade.side = newSide;
 
-            // Update buttons styles
             const yesBtn = document.getElementById('outcome-yes-btn');
             const noBtn = document.getElementById('outcome-no-btn');
 
@@ -902,12 +1063,10 @@
 
             updateModalPrice(market, newSide);
 
-            // Update action button text
             const actionBtn = document.getElementById('trade-action-btn');
             actionBtn.innerHTML = `Buy ${newSide.toUpperCase()} Shares`;
             actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${newSide === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
             
-            // Recalculate preview if amount entered
             calculateTradePreview();
         }
 
@@ -931,7 +1090,7 @@
             const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
 
             const shares = amountInput / currentPrice;
-            const potentialPayout = shares * 1; // Each share pays $1 if wins
+            const potentialPayout = shares * 1;
             const profit = potentialPayout - amountInput;
             const roi = amountInput > 0 ? ((profit / amountInput) * 100) : 0;
 
@@ -952,7 +1111,7 @@
 
         function executeTrade() {
             if (!user.connected) {
-                showToast('Please connect your wallet to trade', 'error');
+                showToast('Please connect your wallet to trade on Arcdic', 'error');
                 return;
             }
 
@@ -967,23 +1126,20 @@
             const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
 
             if (amount > user.balance) {
-                showToast('Insufficient balance', 'error');
+                showToast('Insufficient USDC balance', 'error');
                 return;
             }
 
             const sharesBought = amount / currentPrice;
 
-            // Update user balance
             user.balance -= amount;
 
-            // Update or create position
             if (!user.positions[market.id]) {
                 user.positions[market.id] = { yes: 0, no: 0 };
             }
             user.positions[market.id][side] = (user.positions[market.id][side] || 0) + sharesBought;
 
-            // Simple price impact (constant product style simulation)
-            const impact = (amount / 120000); // $120k moves price ~1%
+            const impact = (amount / 120000);
             if (side === 'yes') {
                 market.yesPrice = Math.min(0.98, market.yesPrice + impact);
             } else {
@@ -991,17 +1147,13 @@
             }
             market.volume += amount;
 
-            // Save everything
             saveMarkets();
             saveUserState();
 
-            // Close modal
             closeTradeModal();
 
-            // Success feedback
             showToast(`Bought ${sharesBought.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(amount)}`, 'success');
 
-            // Refresh UI
             filterMarkets();
             updateStats();
             updatePortfolio();
@@ -1014,7 +1166,6 @@
             currentTrade = { marketId: null, side: null };
         }
 
-        // Portfolio functions
         function switchTab(tab) {
             const marketsView = document.getElementById('markets-view');
             const portfolioView = document.getElementById('portfolio-view');
@@ -1036,7 +1187,7 @@
         }
 
         function updatePortfolio() {
-            if (!user.connected) {
+            if (!user.connected || !user.address) {
                 document.getElementById('portfolio-balance').textContent = '$0.00';
                 document.getElementById('portfolio-value').textContent = '$0.00';
                 document.getElementById('positions-list').innerHTML = '';
@@ -1047,7 +1198,6 @@
 
             document.getElementById('portfolio-balance').textContent = formatCurrency(user.balance);
 
-            // Calculate positions value
             let totalValue = 0;
             let activeCount = 0;
             const positionsHTML = [];
@@ -1066,7 +1216,6 @@
                 activeCount++;
 
                 if (!market.resolved) {
-                    // Current estimated value (if immediately resolved)
                     const yesValue = yesShares * market.yesPrice;
                     const noValue = noShares * (1 - market.yesPrice);
                     totalValue += yesValue + noValue;
@@ -1122,7 +1271,6 @@
                     `;
                     positionsHTML.push(positionHTML);
                 } else {
-                    // Resolved market position
                     const winningSide = market.winner;
                     const winningShares = pos[winningSide] || 0;
                     const winnings = winningShares * 1;
@@ -1177,7 +1325,6 @@
             const currentShares = pos[side];
             const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
 
-            // Ask how many shares to sell
             const toSellStr = prompt(`You have ${currentShares.toFixed(2)} ${side.toUpperCase()} shares.\n\nHow many would you like to sell?`, currentShares.toFixed(2));
             if (!toSellStr) return;
 
@@ -1189,13 +1336,11 @@
 
             const proceeds = toSell * currentPrice;
 
-            // Update state
             user.balance += proceeds;
             pos[side] -= toSell;
 
-            if (pos[side] < 0.001) pos[side] = 0; // Clean up tiny amounts
+            if (pos[side] < 0.001) pos[side] = 0;
 
-            // Price impact (selling yes pushes price down)
             const impact = (proceeds / 120000);
             if (side === 'yes') {
                 market.yesPrice = Math.max(0.02, market.yesPrice - impact);
@@ -1203,14 +1348,13 @@
                 market.yesPrice = Math.min(0.98, market.yesPrice + impact);
             }
 
-            market.volume += proceeds; // treat as traded volume
+            market.volume += proceeds;
 
             saveMarkets();
             saveUserState();
 
             showToast(`Sold ${toSell.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(proceeds)}`, 'success');
 
-            // Refresh
             filterMarkets();
             updatePortfolio();
         }
@@ -1237,19 +1381,17 @@
 
             if (claimed > 0) {
                 saveUserState();
-                showToast(`Claimed ${formatCurrency(claimed)} in winnings!`, 'success');
+                showToast(`Claimed ${formatCurrency(claimed)} in winnings on Arcdic!`, 'success');
                 updatePortfolio();
             } else {
                 showToast('No winnings to claim', 'info');
             }
         }
 
-        // Create new market
         function showCreateModal() {
             document.getElementById('create-modal').classList.remove('hidden');
             document.getElementById('create-modal').classList.add('flex');
             
-            // Set default date to 3 months from now
             const dateInput = document.getElementById('new-end-date');
             const future = new Date('2026-08-19');
             dateInput.value = future.toISOString().split('T')[0];
@@ -1290,20 +1432,18 @@
                 winner: null
             };
 
-            markets.unshift(newMarket); // Add to top
+            markets.unshift(newMarket);
             saveMarkets();
 
             closeCreateModal();
             filterMarkets();
             updateStats();
 
-            showToast('New market created successfully!', 'success');
+            showToast('New market created successfully on Arcdic!', 'success');
 
-            // Clear form
             document.getElementById('new-question').value = '';
         }
 
-        // Admin resolve (demo feature)
         function resolveMarket(marketId, forcedWinner = null) {
             const market = markets.find(m => m.id === marketId);
             if (!market) return;
@@ -1317,7 +1457,6 @@
             market.resolved = true;
             market.winner = forcedWinner;
 
-            // Auto settle user position if exists
             if (user.positions[marketId]) {
                 const pos = user.positions[marketId];
                 const winningShares = pos[forcedWinner] || 0;
@@ -1325,7 +1464,6 @@
                     user.balance += winningShares;
                     showToast(`Market resolved! You won ${formatCurrency(winningShares)}`, 'success');
                 }
-                // Clear losing side
                 pos.yes = 0;
                 pos.no = 0;
             }
@@ -1337,7 +1475,6 @@
             updatePortfolio();
         }
 
-        // Toast notifications
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             
@@ -1368,7 +1505,6 @@
             }, 2800);
         }
 
-        // Keyboard shortcuts
         function setupKeyboardShortcuts() {
             document.addEventListener('keydown', function(e) {
                 if (e.key === '/' && document.activeElement.tagName === 'BODY') {
@@ -1376,7 +1512,7 @@
                     document.getElementById('search-input').focus();
                 }
                 
-                if (e.key.toLowerCase() === '?' && document.getElementById('trade-modal').classList.contains('hidden') === false) {
+                if (e.key.toLowerCase() === '?' && !document.getElementById('trade-modal').classList.contains('hidden')) {
                     e.preventDefault();
                     const amountInput = document.getElementById('trade-amount');
                     amountInput.focus();
@@ -1384,64 +1520,45 @@
                 }
             });
 
-            // Easter egg: press "r" on markets to refresh
             document.addEventListener('keypress', function(e) {
-                if (e.key.toLowerCase() === 'r' && document.getElementById('markets-view').classList.contains('hidden') === false) {
+                if (e.key.toLowerCase() === 'r' && !document.getElementById('markets-view').classList.contains('hidden')) {
                     filterMarkets();
                 }
             });
         }
 
-        // Initialize everything
-        function initializeApp() {
+        async function initializeApp() {
             initTailwind();
             initMarkets();
 
-            // Initial render
             renderCategoryFilters();
             filterMarkets();
             updateStats();
 
-            // Restore wallet UI if previously connected
-            if (user.connected && user.address) {
-                const btn = document.getElementById('connect-btn');
-                btn.innerHTML = `
-                    <div class="flex items-center gap-x-2">
-                        <div class="w-2.5 h-2.5 bg-emerald-400 rounded-full"></div>
-                        <span class="font-mono text-xs">${user.address}</span>
-                    </div>
-                `;
-                btn.classList.remove('bg-white', 'text-slate-900');
-                btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600');
-            }
+            await checkExistingConnection();
 
-            // Initial portfolio update
             updatePortfolio();
 
-            // Event listeners
             document.getElementById('search-input').addEventListener('input', filterMarkets);
             
-            // Bonus: Make stats clickable to show fun fact
             const statsBar = document.querySelector('.border-b.border-slate-800.bg-slate-900\\/50');
             if (statsBar) {
                 statsBar.addEventListener('click', () => {
-                    showToast('This is a fully functional frontend demo running 100% in your browser on Arc.', 'info');
+                    showToast('Arcdic is a fully functional prediction market demo on Arc Testnet (Chain ID 5042002).', 'info');
                 });
             }
 
             setupKeyboardShortcuts();
 
-            // Welcome toast for first time
             setTimeout(() => {
-                if (!localStorage.getItem('arcMarkets')) {
-                    showToast('Welcome to the Polymarket demo on Arc! Connect wallet to start trading.', 'info');
+                if (!localStorage.getItem('arcdicMarkets')) {
+                    showToast('Welcome to Arcdic — Prediction Markets on Arc Testnet. Connect your wallet to start trading!', 'info');
                 }
             }, 1800);
 
-            console.log('%c[Arc Demo] Polymarket-like prediction market initialized successfully.', 'color:#64748b');
+            console.log('%c[Arcdic] Prediction market demo initialized on Arc Testnet.', 'color:#64748b');
         }
 
-        // Boot the app
         window.onload = initializeApp;
     </script>
 </body>
