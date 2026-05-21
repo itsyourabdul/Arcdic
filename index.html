@@ -24,43 +24,60 @@
         }
 
         .market-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .market-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 25px 50px -12px rgb(0 0 0 / 0.25);
         }
 
         .price-btn {
-            transition: all 0.1s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         .price-btn:hover {
-            transform: scale(1.02);
-            filter: brightness(1.1);
+            transform: scale(1.05);
+            filter: brightness(1.15);
         }
 
         .section-header {
-            font-size: 1.1rem;
+            font-size: 1.25rem;
             font-weight: 600;
             letter-spacing: -0.025em;
         }
 
         .prediction-bar {
-            height: 6px;
+            height: 8px;
             background: linear-gradient(to right, #10b981 0%, #10b981 var(--yes-pct), #f43f5e var(--yes-pct), #f43f5e 100%);
             border-radius: 9999px;
+            position: relative;
+        }
+
+        .prediction-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            animation: shimmer 2s linear infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(300%); }
         }
 
         .modal {
-            animation: modalPop 0.2s ease forwards;
+            animation: modalPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
         }
 
         @keyframes modalPop {
             from {
                 opacity: 0;
-                transform: scale(0.95) translateY(10px);
+                transform: scale(0.95) translateY(20px);
             }
             to {
                 opacity: 1;
@@ -71,11 +88,13 @@
         .nav-active {
             background-color: #1e2937;
             color: white;
-            border-radius: 6px;
+            border-radius: 9999px;
+            box-shadow: 0 10px 15px -3px rgb(99 102 241);
         }
 
         .stat-value {
             font-variant-numeric: tabular-nums;
+            animation: countUp 1.5s ease-out forwards;
         }
 
         .outcome-yes { color: #10b981; }
@@ -96,53 +115,61 @@
         }
 
         .wallet-btn {
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .live-dot {
+            animation: livePulse 2s infinite;
+        }
+
+        .toast {
+            animation: toastIn 0.3s ease forwards;
         }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200">
     <!-- Navbar -->
-    <nav class="border-b border-slate-800 bg-slate-900/80 backdrop-blur-lg sticky top-0 z-50">
+    <nav class="border-b border-slate-800 bg-slate-900/95 backdrop-blur-xl sticky top-0 z-50 shadow-xl">
         <div class="tail-container px-6 py-4">
             <div class="flex items-center justify-between">
                 <!-- Logo -->
-                <div class="flex items-center gap-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 to-violet-600 rounded-2xl flex items-center justify-center shadow-inner">
-                        <i class="fa-solid fa-chart-line text-white text-3xl"></i>
+                <div onclick="window.location.reload()" class="flex items-center gap-x-3 cursor-pointer group">
+                    <div class="w-10 h-10 bg-gradient-to-br from-indigo-500 via-violet-600 to-purple-600 rounded-3xl flex items-center justify-center shadow-inner group-active:scale-95 transition-transform">
+                        <i class="fa-solid fa-chart-line text-white text-3xl rotate-12"></i>
                     </div>
                     <div>
-                        <span class="logo-font text-3xl font-semibold tracking-tighter">arcdic</span>
-                        <span class="ml-1.5 px-2 py-0.5 text-[10px] font-mono tracking-[2px] bg-emerald-500/10 text-emerald-400 rounded-full align-super">TESTNET</span>
+                        <span class="logo-font text-3xl font-semibold tracking-[-2px]">arcdic</span>
+                        <span class="ml-1.5 px-2.5 py-0.5 text-[10px] font-mono tracking-[3px] bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-3xl align-super shadow-inner">TESTNET</span>
                     </div>
                 </div>
 
                 <!-- Search -->
-                <div class="flex-1 max-w-md mx-8">
+                <div class="flex-1 max-w-lg mx-8">
                     <div class="relative group">
                         <input 
                             id="search-input"
                             type="text" 
-                            placeholder="Search markets..." 
-                            class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 transition-colors text-sm rounded-3xl pl-11 py-2.5 outline-none placeholder:text-slate-500"
-                            onkeyup="filterMarkets()"
+                            placeholder="Search markets or questions..." 
+                            class="w-full bg-slate-900 border border-slate-700 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30 transition-all text-sm rounded-3xl pl-12 py-3 outline-none placeholder:text-slate-400"
+                            onkeyup="if(event.key==='Enter') filterMarkets()"
                         >
-                        <i class="fa-solid fa-search absolute left-4 top-3 text-slate-500"></i>
+                        <i class="fa-solid fa-magnifying-glass absolute left-5 top-3.5 text-slate-400 group-focus-within:text-indigo-400"></i>
                     </div>
                 </div>
 
                 <!-- Right side -->
-                <div class="flex items-center gap-x-3">
+                <div class="flex items-center gap-x-4">
                     <!-- Tabs -->
-                    <div class="flex items-center bg-slate-900 border border-slate-800 rounded-3xl p-1 text-sm">
+                    <div class="flex items-center bg-slate-900 border border-slate-700 rounded-3xl p-1 text-sm font-medium">
                         <button onclick="switchTab('markets')" 
                                 id="tab-markets"
-                                class="px-5 py-1.5 rounded-3xl font-medium flex items-center gap-x-2 nav-active">
+                                class="px-6 py-2 rounded-3xl flex items-center gap-x-2 nav-active">
                             <i class="fa-solid fa-globe fa-sm"></i>
                             <span>Markets</span>
                         </button>
                         <button onclick="switchTab('portfolio')" 
                                 id="tab-portfolio"
-                                class="px-5 py-1.5 rounded-3xl font-medium flex items-center gap-x-2 text-slate-400 hover:text-slate-200 transition-colors">
+                                class="px-6 py-2 rounded-3xl flex items-center gap-x-2 text-slate-400 hover:text-slate-200 transition-colors">
                             <i class="fa-solid fa-wallet fa-sm"></i>
                             <span>Portfolio</span>
                         </button>
@@ -151,43 +178,57 @@
                     <!-- Connect Wallet -->
                     <button onclick="connectWallet()" 
                             id="connect-btn"
-                            class="wallet-btn flex items-center gap-x-2 px-5 py-2 bg-white text-slate-900 hover:bg-slate-100 transition-all font-semibold text-sm rounded-3xl shadow-sm active:scale-[0.985]">
+                            class="wallet-btn flex items-center gap-x-3 px-6 py-2.5 bg-white text-slate-900 hover:bg-slate-100 font-semibold text-sm rounded-3xl shadow-lg active:scale-95">
                         <i class="fa-solid fa-wallet"></i>
                         <span id="connect-text">Connect Wallet</span>
                     </button>
+
+                    <!-- Balance (shown when connected) -->
+                    <div id="balance-pill" onclick="switchTab('portfolio')" class="hidden items-center gap-x-2 bg-slate-800 hover:bg-slate-700 px-4 h-10 rounded-3xl text-xs font-mono cursor-pointer">
+                        <span class="text-emerald-400">$</span>
+                        <span id="nav-balance" class="font-semibold">10,000</span>
+                        <span class="text-emerald-400 text-[10px]">USDC</span>
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
     <!-- Stats Bar -->
-    <div class="border-b border-slate-800 bg-slate-900/50">
+    <div class="border-b border-slate-800 bg-slate-900/70 backdrop-blur-md">
         <div class="tail-container px-6 py-3">
             <div class="flex items-center justify-between text-sm">
                 <div class="flex items-center gap-x-8">
                     <div>
-                        <span class="text-slate-400 text-xs tracking-wider">TOTAL VOLUME</span>
-                        <div class="font-semibold text-lg metric" id="total-volume">$48.7M</div>
+                        <span class="text-slate-400 text-xs tracking-widest uppercase">TOTAL VOLUME</span>
+                        <div id="total-volume" class="font-semibold text-2xl metric">$48.7M</div>
                     </div>
                     <div>
-                        <span class="text-slate-400 text-xs tracking-wider">ACTIVE MARKETS</span>
-                        <div class="font-semibold text-lg metric" id="active-markets">142</div>
+                        <span class="text-slate-400 text-xs tracking-widest uppercase">ACTIVE MARKETS</span>
+                        <div id="active-markets" class="font-semibold text-2xl metric">142</div>
                     </div>
                     <div>
-                        <span class="text-slate-400 text-xs tracking-wider">TRADERS</span>
-                        <div class="font-semibold text-lg metric" id="total-traders">89,412</div>
+                        <span class="text-slate-400 text-xs tracking-widest uppercase">TRADERS</span>
+                        <div id="total-traders" class="font-semibold text-2xl metric">89,412</div>
+                    </div>
+                    <div class="h-8 w-px bg-slate-700"></div>
+                    <div class="flex items-center gap-x-1.5 text-emerald-400">
+                        <div class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></div>
+                        <span class="font-medium text-xs">LIVE • Arc Testnet</span>
                     </div>
                 </div>
                 
-                <div class="flex items-center gap-x-2 text-xs">
-                    <div class="flex items-center gap-x-1.5 bg-emerald-500/10 text-emerald-400 px-3 py-1 rounded-2xl">
-                        <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                        <span class="font-medium">Live on Arc Testnet</span>
-                    </div>
+                <div class="flex items-center gap-x-3">
                     <button onclick="showCreateModal()" 
-                            class="flex items-center gap-x-2 px-4 py-1.5 bg-slate-800 hover:bg-slate-700 transition-colors text-xs font-semibold rounded-2xl border border-slate-700">
+                            class="flex items-center gap-x-2 px-6 py-2.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white font-semibold text-sm rounded-3xl shadow-inner transition-all active:scale-95">
                         <i class="fa-solid fa-plus"></i>
                         <span>Create Market</span>
+                    </button>
+                    
+                    <button onclick="simulatePriceTick()" 
+                            class="text-xs flex items-center gap-x-1 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-3xl text-slate-400 hover:text-white transition-colors">
+                        <i class="fa-solid fa-arrow-rotate-right"></i>
+                        <span>Simulate live prices</span>
                     </button>
                 </div>
             </div>
@@ -195,80 +236,110 @@
     </div>
 
     <!-- Main Content -->
-    <div class="tail-container px-6 pt-6 pb-12">
+    <div class="tail-container px-6 pt-8 pb-12">
         
         <!-- Markets View -->
         <div id="markets-view">
+            <!-- Featured Banner -->
+            <div id="featured-banner" class="mb-8 hidden bg-gradient-to-r from-indigo-500/10 to-violet-500/10 border border-indigo-500/30 rounded-3xl p-6 flex items-center gap-6">
+                <div class="flex-1">
+                    <div class="inline-flex items-center gap-x-2 text-indigo-400 text-xs font-medium tracking-widest">
+                        <i class="fa-solid fa-fire"></i>
+                        FEATURED MARKET
+                    </div>
+                    <div id="featured-question" class="text-2xl font-semibold mt-1 leading-tight"></div>
+                    <div class="flex gap-x-6 mt-4 text-sm">
+                        <div><span id="featured-yes-pct" class="font-mono text-emerald-400"></span> YES</div>
+                        <div><span id="featured-no-pct" class="font-mono text-rose-400"></span> NO</div>
+                    </div>
+                </div>
+                <button onclick="openFeaturedTrade()" 
+                        class="px-8 py-4 bg-white text-slate-900 font-semibold rounded-3xl shadow-lg flex items-center gap-x-3 hover:shadow-indigo-500/30 transition-all">
+                    TRADE NOW
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
             <!-- Category Filters -->
-            <div class="flex items-center justify-between mb-5">
+            <div class="flex items-center justify-between mb-6">
                 <div class="flex items-center gap-x-2 flex-wrap gap-y-2" id="category-filters">
                     <!-- Populated by JS -->
                 </div>
                 
-                <div class="flex items-center gap-x-2 text-xs">
+                <div class="flex items-center gap-x-3 text-xs">
                     <select id="sort-select" onchange="filterMarkets()" 
-                            class="bg-slate-900 border border-slate-700 text-xs rounded-2xl px-3 py-2 outline-none cursor-pointer">
-                        <option value="volume">Sort: Highest Volume</option>
-                        <option value="newest">Sort: Ending Soon</option>
-                        <option value="price-high">Sort: Highest Yes Price</option>
+                            class="bg-slate-900 border border-slate-700 rounded-3xl px-5 py-3 outline-none cursor-pointer font-medium">
+                        <option value="volume">Highest Volume</option>
+                        <option value="newest">Ending Soonest</option>
+                        <option value="price-high">Highest Yes Price</option>
+                        <option value="liquidity">Highest Liquidity</option>
                     </select>
                 </div>
             </div>
 
             <!-- Markets Grid -->
             <div id="markets-grid" 
-                 class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 market-grid">
+                 class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6 market-grid">
                 <!-- Populated dynamically by JS -->
             </div>
         </div>
 
         <!-- Portfolio View -->
         <div id="portfolio-view" class="hidden">
-            <div class="mb-6">
+            <div class="mb-6 flex items-end justify-between">
                 <h2 class="section-header flex items-center gap-x-3">
-                    <span>Your Positions</span>
+                    <span>Your Portfolio</span>
                     <span id="portfolio-count" 
-                          class="text-xs font-mono bg-slate-800 px-3 py-1 rounded-2xl text-slate-400">0 active</span>
+                          class="text-xs font-mono bg-slate-800 px-4 py-1.5 rounded-3xl text-slate-400">0 positions</span>
                 </h2>
+                <button onclick="claimAllWinnings()" 
+                        class="flex items-center gap-x-2 px-6 py-3 bg-emerald-600 hover:bg-emerald-500 rounded-3xl text-sm font-semibold transition-colors">
+                    <i class="fa-solid fa-hand-holding-usd"></i>
+                    <span>Claim All Winnings</span>
+                </button>
             </div>
 
             <!-- Portfolio Summary -->
-            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-6 mb-6">
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div class="bg-slate-900 border border-slate-700 rounded-3xl p-8 mb-8 shadow-inner">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div>
-                        <div class="text-xs text-slate-400 tracking-wider">AVAILABLE BALANCE</div>
-                        <div class="text-4xl font-semibold tabular-nums mt-1" id="portfolio-balance">$10,000.00</div>
-                        <div class="text-emerald-400 text-xs mt-1 flex items-center gap-x-1">
-                            <i class="fa-solid fa-wallet"></i>
-                            <span>USDC</span>
+                        <div class="text-xs text-slate-400 tracking-widest mb-1">AVAILABLE BALANCE</div>
+                        <div id="portfolio-balance" class="text-5xl font-semibold tabular-nums">$10,000</div>
+                        <div class="text-emerald-400 flex items-center gap-x-2 mt-2 text-sm">
+                            <i class="fa-solid fa-circle-check"></i>
+                            USDC on Arc Testnet
                         </div>
                     </div>
                     <div>
-                        <div class="text-xs text-slate-400 tracking-wider">POSITIONS VALUE (IF RESOLVED)</div>
-                        <div class="text-4xl font-semibold tabular-nums mt-1 text-emerald-400" id="portfolio-value">$0.00</div>
-                        <div class="text-xs text-slate-500 mt-1">Based on current share prices • Arc Testnet</div>
+                        <div class="text-xs text-slate-400 tracking-widest mb-1">POSITIONS VALUE</div>
+                        <div id="portfolio-value" class="text-5xl font-semibold tabular-nums text-emerald-400">$0</div>
+                        <div class="text-xs text-slate-400 mt-2">Current market prices</div>
                     </div>
-                    <div class="flex items-end justify-end">
-                        <button onclick="claimAllWinnings()" 
-                                class="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 transition-colors text-sm font-semibold rounded-2xl flex items-center gap-x-2">
-                            <i class="fa-solid fa-hand-holding-usd"></i>
-                            <span>Claim All Winnings</span>
-                        </button>
+                    <div>
+                        <div class="text-xs text-slate-400 tracking-widest mb-1">TOTAL P&amp;L</div>
+                        <div id="portfolio-pl" class="text-5xl font-semibold tabular-nums text-emerald-400">+$0</div>
+                        <div id="portfolio-pl-pct" class="text-xs mt-2 text-emerald-400">0.00%</div>
+                    </div>
+                    <div class="flex items-center justify-end">
+                        <div class="text-center">
+                            <div class="text-xs text-slate-400">24H CHANGE</div>
+                            <div id="portfolio-change" class="text-3xl font-semibold text-emerald-400">+2.4%</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Positions List -->
-            <div id="positions-list" class="space-y-3">
+            <div id="positions-list" class="space-y-4">
                 <!-- Populated by JS -->
             </div>
             
-            <div id="no-positions" class="hidden text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl">
-                <i class="fa-solid fa-inbox text-4xl text-slate-700 mb-4"></i>
-                <p class="text-slate-400">You don't have any open positions yet.</p>
+            <div id="no-positions" class="hidden text-center py-20 bg-slate-900 border border-slate-700 rounded-3xl">
+                <i class="fa-solid fa-inbox text-6xl text-slate-600 mb-6"></i>
+                <p class="text-slate-400 text-lg">No open positions yet.</p>
                 <button onclick="switchTab('markets')" 
-                        class="mt-4 text-sm px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl transition-colors">
-                    Browse Markets
+                        class="mt-6 px-8 py-4 bg-slate-800 hover:bg-slate-700 rounded-3xl text-sm font-medium">
+                    Browse &amp; Trade Markets
                 </button>
             </div>
         </div>
@@ -276,283 +347,308 @@
 
     <!-- Trade Modal -->
     <div id="trade-modal" onclick="if (event.target.id === 'trade-modal') closeTradeModal()" 
-         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+         class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
         <div onclick="event.stopImmediatePropagation()" 
-             class="modal bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl overflow-hidden shadow-2xl">
+             class="modal bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl overflow-hidden">
             
-            <!-- Modal Header -->
-            <div class="px-6 pt-5 pb-4 border-b border-slate-700 flex items-center justify-between">
-                <div>
-                    <div class="font-semibold text-lg" id="modal-question"></div>
-                    <div class="flex items-center gap-x-2 mt-1 text-xs">
-                        <span id="modal-category" class="px-2.5 py-0.5 rounded-xl text-[10px] font-medium"></span>
-                        <span class="text-slate-500" id="modal-end-date"></span>
+            <div class="px-8 pt-6 pb-4 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex-1">
+                    <div id="modal-question" class="font-semibold text-xl leading-tight"></div>
+                    <div class="flex items-center gap-x-3 mt-3 text-xs">
+                        <span id="modal-category" class="px-3 py-1 rounded-2xl text-xs font-medium"></span>
+                        <span id="modal-end-date" class="flex items-center gap-x-1 text-slate-400"></span>
                     </div>
                 </div>
-                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white w-9 h-9 flex items-center justify-center">
-                    <i class="fa-solid fa-times text-xl"></i>
-                </button>
+                <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white transition-colors text-2xl leading-none">×</button>
             </div>
 
-            <div class="p-6">
+            <div class="p-8">
                 <!-- Outcome Selection -->
-                <div class="mb-5">
-                    <div class="text-xs font-medium text-slate-400 mb-2 tracking-wider">SELECT OUTCOME</div>
-                    <div class="grid grid-cols-2 gap-3" id="outcome-buttons">
-                        <!-- JS populated Yes/No buttons -->
+                <div class="mb-8">
+                    <div class="text-xs font-medium text-slate-400 mb-3 tracking-widest">CHOOSE OUTCOME</div>
+                    <div class="grid grid-cols-2 gap-4" id="outcome-buttons">
+                        <!-- JS populated -->
                     </div>
                 </div>
 
-                <!-- Current Price -->
-                <div class="flex justify-between items-baseline mb-5 px-1">
+                <!-- Current Market Info -->
+                <div class="flex justify-between mb-6 px-2">
                     <div>
-                        <span class="text-xs text-slate-400">CURRENT PRICE</span>
-                        <div id="modal-current-price" class="text-4xl font-semibold tabular-nums"></div>
+                        <span class="text-xs uppercase text-slate-400">Current price</span>
+                        <div id="modal-current-price" class="text-5xl font-semibold tabular-nums leading-none"></div>
                     </div>
                     <div class="text-right">
-                        <div class="text-xs text-slate-400">PROBABILITY</div>
-                        <div id="modal-probability" class="text-2xl font-semibold"></div>
+                        <span class="text-xs uppercase text-slate-400">Implied probability</span>
+                        <div id="modal-probability" class="text-4xl font-semibold"></div>
                     </div>
                 </div>
 
-                <!-- Amount Input -->
-                <div class="mb-5">
-                    <div class="flex justify-between text-xs mb-1.5 px-1">
-                        <div class="font-medium text-slate-300">Amount to spend (USDC)</div>
-                        <div onclick="setMaxAmount()" class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-medium">MAX</div>
+                <!-- Amount -->
+                <div class="mb-6">
+                    <div class="flex justify-between mb-2 px-1">
+                        <div class="text-xs font-medium">Amount (USDC)</div>
+                        <div onclick="setMaxAmount()" class="text-indigo-400 text-xs cursor-pointer font-medium flex items-center gap-x-1 hover:text-indigo-300">
+                            MAX <i class="fa-solid fa-wallet text-xs"></i>
+                        </div>
                     </div>
                     
                     <div class="relative">
                         <input type="number" id="trade-amount" step="0.01" min="1"
-                               class="w-full bg-slate-800 border border-slate-600 focus:border-indigo-500 transition-colors text-2xl font-semibold rounded-2xl px-5 py-4 outline-none"
+                               class="w-full bg-slate-800 border border-slate-600 focus:border-indigo-400 text-3xl font-semibold rounded-3xl px-7 py-5 outline-none"
                                placeholder="0.00" oninput="calculateTradePreview()">
-                        <div class="absolute right-5 top-4 text-slate-400 font-medium">USDC</div>
+                        <div class="absolute right-7 top-1/2 -translate-y-1/2 text-slate-400 font-medium">USDC</div>
+                    </div>
+
+                    <!-- Quick amounts -->
+                    <div class="flex gap-x-2 mt-4 text-xs">
+                        <button onclick="quickAmount(10)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl">10</button>
+                        <button onclick="quickAmount(50)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl">50</button>
+                        <button onclick="quickAmount(100)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl">100</button>
+                        <button onclick="quickAmount(500)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl">500</button>
+                        <button onclick="quickAmount(1000)" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 rounded-2xl">1K</button>
                     </div>
                 </div>
 
                 <!-- Preview -->
-                <div class="bg-slate-800/70 border border-slate-700 rounded-2xl p-4 mb-5 text-sm">
-                    <div class="flex justify-between py-1">
-                        <span class="text-slate-400">You'll receive</span>
-                        <span id="preview-shares" class="font-semibold tabular-nums">0.00 shares</span>
-                    </div>
-                    <div class="flex justify-between py-1">
-                        <span class="text-slate-400">Avg. price per share</span>
-                        <span id="preview-avg-price" class="font-medium tabular-nums">—</span>
-                    </div>
-                    <div class="flex justify-between py-1 border-t border-slate-700 mt-2 pt-2">
-                        <span class="font-medium">Potential payout if correct</span>
-                        <span id="preview-payout" class="font-semibold text-emerald-400 tabular-nums">$0.00</span>
-                    </div>
-                    <div class="flex justify-between text-xs pt-0.5">
-                        <span class="text-emerald-400/70">Profit if wins</span>
-                        <span id="preview-profit" class="font-medium text-emerald-400 tabular-nums">+$0.00 (+0%)</span>
+                <div class="bg-slate-800/60 border border-slate-700 rounded-3xl p-6 mb-6">
+                    <div class="space-y-4 text-sm">
+                        <div class="flex justify-between"><span class="text-slate-400">You'll receive</span><span id="preview-shares" class="font-semibold">0.00 shares</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Avg. price paid</span><span id="preview-avg-price" class="font-medium">—</span></div>
+                        <div class="flex justify-between border-t border-slate-700 pt-4"><span class="font-semibold">Payout if correct</span><span id="preview-payout" class="font-semibold text-emerald-400">$0.00</span></div>
+                        <div class="flex justify-between text-emerald-400"><span>Est. profit</span><span id="preview-profit" class="font-medium">+$0.00 (+0%)</span></div>
                     </div>
                 </div>
 
-                <!-- Balance Info -->
-                <div class="flex justify-between items-center text-xs px-1 mb-5">
-                    <div class="text-slate-400">Your balance</div>
-                    <div class="font-medium tabular-nums" id="modal-balance"></div>
+                <!-- Balance -->
+                <div class="flex justify-between text-sm px-2 mb-8">
+                    <span class="text-slate-400">Wallet balance</span>
+                    <span id="modal-balance" class="font-semibold"></span>
                 </div>
 
-                <!-- Action Button -->
-                <button onclick="executeTrade()"
-                        id="trade-action-btn"
-                        class="w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985]">
-                    <!-- Dynamic content set by JS -->
+                <!-- Trade Button -->
+                <button onclick="executeTrade()" id="trade-action-btn"
+                        class="w-full py-5 rounded-3xl font-bold text-lg flex items-center justify-center gap-x-3 active:scale-[0.97]">
+                    <!-- Set by JS -->
                 </button>
                 
-                <div class="text-center mt-3">
-                    <div class="text-[10px] text-slate-500">This is a simulated trade on Arcdic • Arc Testnet. No real funds are moved.</div>
-                </div>
+                <p class="text-center text-[10px] text-slate-500 mt-4">Simulated trade • Arc Testnet • No real funds at risk</p>
             </div>
         </div>
     </div>
 
     <!-- Create Market Modal -->
     <div id="create-modal" onclick="if (event.target.id === 'create-modal') closeCreateModal()" 
-         class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+         class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
         <div onclick="event.stopImmediatePropagation()" 
-             class="modal bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-6">
-            <div class="flex justify-between items-center mb-5">
-                <div class="font-semibold text-xl">Create New Market on Arcdic</div>
-                <button onclick="closeCreateModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
+             class="modal bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl p-8">
+            
+            <div class="flex justify-between mb-6">
+                <h3 class="text-2xl font-semibold">Create a new market</h3>
+                <button onclick="closeCreateModal()" class="text-3xl leading-none text-slate-400">×</button>
             </div>
             
-            <div class="space-y-4">
+            <div class="space-y-6">
                 <div>
-                    <label class="text-xs font-medium tracking-wider text-slate-400">QUESTION</label>
-                    <input id="new-question" type="text" placeholder="Will X happen before Y?" 
-                           class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none focus:border-indigo-500">
+                    <label class="block text-xs font-medium text-slate-400 mb-2">MARKET QUESTION</label>
+                    <input id="new-question" type="text" placeholder="Will Bitcoin hit $200K by end of 2026?" 
+                           class="w-full bg-slate-800 border border-slate-700 rounded-3xl px-6 py-4 outline-none focus:border-indigo-400 text-base">
                 </div>
                 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-2 gap-6">
                     <div>
-                        <label class="text-xs font-medium tracking-wider text-slate-400">CATEGORY</label>
-                        <select id="new-category" class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none">
+                        <label class="block text-xs font-medium text-slate-400 mb-2">CATEGORY</label>
+                        <select id="new-category" class="w-full bg-slate-800 border border-slate-700 rounded-3xl px-6 py-4 outline-none">
                             <option>Politics</option>
                             <option>Crypto</option>
                             <option>Sports</option>
                             <option>Tech</option>
                             <option>Entertainment</option>
                             <option>Economy</option>
+                            <option>Science</option>
                         </select>
                     </div>
                     <div>
-                        <label class="text-xs font-medium tracking-wider text-slate-400">ENDS ON</label>
-                        <input id="new-end-date" type="date" value="2026-12-31"
-                               class="mt-1 w-full bg-slate-800 border border-slate-700 rounded-2xl px-4 py-3 text-sm outline-none">
+                        <label class="block text-xs font-medium text-slate-400 mb-2">RESOLUTION DATE</label>
+                        <input id="new-end-date" type="date" class="w-full bg-slate-800 border border-slate-700 rounded-3xl px-6 py-4 outline-none">
                     </div>
                 </div>
 
                 <div>
-                    <label class="text-xs font-medium tracking-wider text-slate-400">INITIAL YES PRICE</label>
-                    <div class="flex items-center gap-x-3 mt-1">
-                        <input id="new-yes-price" type="range" min="5" max="95" step="5" value="50" 
+                    <label class="block text-xs font-medium text-slate-400 mb-2">INITIAL YES PRICE (¢)</label>
+                    <div class="flex items-center gap-4">
+                        <input id="new-yes-price" type="range" min="5" max="95" step="1" value="50" 
                                class="flex-1 accent-indigo-500" oninput="updatePriceLabel()">
-                        <div class="w-14 text-center">
-                            <span id="new-yes-price-label" class="font-mono text-lg font-semibold">50</span>
-                            <span class="text-xs text-slate-400">¢</span>
+                        <div class="bg-slate-800 w-20 text-center rounded-2xl py-3 font-mono text-2xl font-semibold">
+                            <span id="new-yes-price-label">50</span><span class="text-xs ml-1 text-slate-400">¢</span>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <div class="flex gap-x-3 mt-7">
-                <button onclick="closeCreateModal()" 
-                        class="flex-1 py-3 rounded-2xl border border-slate-700 hover:bg-slate-800 transition-colors font-medium">Cancel</button>
-                <button onclick="createNewMarket()" 
-                        class="flex-1 py-3 rounded-2xl bg-white text-slate-900 font-semibold hover:bg-slate-200 transition-colors">Create Market</button>
+            <div class="flex gap-4 mt-10">
+                <button onclick="closeCreateModal()" class="flex-1 py-4 border border-slate-700 rounded-3xl font-medium hover:bg-slate-800">Cancel</button>
+                <button onclick="createNewMarket()" class="flex-1 py-4 bg-white text-slate-900 rounded-3xl font-semibold hover:bg-slate-100">Launch Market</button>
             </div>
         </div>
     </div>
 
     <!-- Toast Container -->
-    <div id="toast-container" class="fixed bottom-5 right-5 z-[200] flex flex-col gap-y-2"></div>
+    <div id="toast-container" class="fixed bottom-6 right-6 z-[200] flex flex-col gap-y-3"></div>
 
     <script>
-        // Tailwind script configuration
+        // Tailwind
         function initTailwind() {
-            document.documentElement.style.setProperty('--accent', '#6366f1');
-            
             tailwind.config = {
+                content: [],
                 theme: {
-                    extend: {
-                        fontFamily: {
-                            'grotesk': ['Space Grotesk', 'system-ui', 'sans-serif']
-                        }
-                    }
+                    extend: {}
                 }
             };
         }
 
-        // Global State
+        // Global state
         let markets = [];
         let user = {
             connected: false,
             address: null,
             balance: 10000,
-            positions: {} // { marketId: { yes: number, no: number } }
+            positions: {} // marketId → {yes: shares, no: shares, costBasis: number}
         };
         let currentFilter = 'all';
         let currentTrade = { marketId: null, side: null };
-        let provider = null;
+        let liveInterval = null;
 
-        // Initial sample markets
+        // Sample markets (expanded & improved)
         function initMarkets() {
-            const savedMarkets = localStorage.getItem('arcdicMarkets');
-            if (savedMarkets) {
-                markets = JSON.parse(savedMarkets);
-            } else {
-                markets = [
-                    {
-                        id: 1,
-                        question: "Will Donald Trump win the 2028 US Presidential Election?",
-                        category: "Politics",
-                        yesPrice: 0.58,
-                        volume: 2450000,
-                        endDate: "2028-11-07",
-                        liquidity: 890000,
-                        traders: 5670,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 2,
-                        question: "Will Bitcoin reach $150,000 by December 31, 2026?",
-                        category: "Crypto",
-                        yesPrice: 0.71,
-                        volume: 1870000,
-                        endDate: "2026-12-31",
-                        liquidity: 620000,
-                        traders: 3420,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 3,
-                        question: "Will the Los Angeles Lakers win the 2027 NBA Championship?",
-                        category: "Sports",
-                        yesPrice: 0.27,
-                        volume: 920000,
-                        endDate: "2027-06-20",
-                        liquidity: 340000,
-                        traders: 2100,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 4,
-                        question: "Will Apple announce a foldable iPhone before 2028?",
-                        category: "Tech",
-                        yesPrice: 0.63,
-                        volume: 485000,
-                        endDate: "2027-09-30",
-                        liquidity: 195000,
-                        traders: 1240,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 5,
-                        question: "Will Taylor Swift release a new album in 2026?",
-                        category: "Entertainment",
-                        yesPrice: 0.44,
-                        volume: 310000,
-                        endDate: "2026-12-31",
-                        liquidity: 142000,
-                        traders: 980,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 6,
-                        question: "Will the US economy enter a technical recession in 2026?",
-                        category: "Economy",
-                        yesPrice: 0.38,
-                        volume: 1340000,
-                        endDate: "2026-12-31",
-                        liquidity: 510000,
-                        traders: 2890,
-                        resolved: false,
-                        winner: null
-                    },
-                    {
-                        id: 7,
-                        question: "Will Kamala Harris have won the 2024 US Presidential Election?",
-                        category: "Politics",
-                        yesPrice: 0.42,
-                        volume: 8750000,
-                        endDate: "2024-11-05",
-                        liquidity: 1200000,
-                        traders: 12480,
-                        resolved: true,
-                        winner: "no"
-                    }
-                ];
-                saveMarkets();
+            const saved = localStorage.getItem('arcdicMarkets');
+            if (saved) {
+                markets = JSON.parse(saved);
+                return;
             }
+
+            markets = [
+                {
+                    id: 1,
+                    question: "Will Donald Trump win the 2028 US Presidential Election?",
+                    category: "Politics",
+                    yesPrice: 0.58,
+                    volume: 2450000,
+                    endDate: "2028-11-07",
+                    liquidity: 890000,
+                    traders: 5670,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 2,
+                    question: "Will Bitcoin reach $150,000 by December 31, 2026?",
+                    category: "Crypto",
+                    yesPrice: 0.71,
+                    volume: 1870000,
+                    endDate: "2026-12-31",
+                    liquidity: 620000,
+                    traders: 3420,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 3,
+                    question: "Will the Los Angeles Lakers win the 2027 NBA Championship?",
+                    category: "Sports",
+                    yesPrice: 0.27,
+                    volume: 920000,
+                    endDate: "2027-06-20",
+                    liquidity: 340000,
+                    traders: 2100,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 4,
+                    question: "Will Apple launch a foldable iPhone before 2028?",
+                    category: "Tech",
+                    yesPrice: 0.63,
+                    volume: 485000,
+                    endDate: "2027-09-30",
+                    liquidity: 195000,
+                    traders: 1240,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 5,
+                    question: "Will Taylor Swift release a new studio album in 2026?",
+                    category: "Entertainment",
+                    yesPrice: 0.44,
+                    volume: 310000,
+                    endDate: "2026-12-31",
+                    liquidity: 142000,
+                    traders: 980,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 6,
+                    question: "Will the US economy enter a recession in 2026?",
+                    category: "Economy",
+                    yesPrice: 0.38,
+                    volume: 1340000,
+                    endDate: "2026-12-31",
+                    liquidity: 510000,
+                    traders: 2890,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 7,
+                    question: "Will Kamala Harris have won the 2024 US Presidential Election?",
+                    category: "Politics",
+                    yesPrice: 0.42,
+                    volume: 8750000,
+                    endDate: "2024-11-05",
+                    liquidity: 1200000,
+                    traders: 12480,
+                    resolved: true,
+                    winner: "no"
+                },
+                {
+                    id: 8,
+                    question: "Will Ethereum ETF inflows exceed $5B in Q3 2026?",
+                    category: "Crypto",
+                    yesPrice: 0.65,
+                    volume: 650000,
+                    endDate: "2026-09-30",
+                    liquidity: 280000,
+                    traders: 1450,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 9,
+                    question: "Will OpenAI release GPT-5 before December 2026?",
+                    category: "Tech",
+                    yesPrice: 0.82,
+                    volume: 1120000,
+                    endDate: "2026-12-31",
+                    liquidity: 450000,
+                    traders: 2890,
+                    resolved: false,
+                    winner: null
+                },
+                {
+                    id: 10,
+                    question: "Will the next FIFA World Cup be won by Brazil?",
+                    category: "Sports",
+                    yesPrice: 0.31,
+                    volume: 780000,
+                    endDate: "2026-07-19",
+                    liquidity: 310000,
+                    traders: 1670,
+                    resolved: false,
+                    winner: null
+                }
+            ];
+            localStorage.setItem('arcdicMarkets', JSON.stringify(markets));
         }
 
         function saveMarkets() {
@@ -564,8 +660,8 @@
         }
 
         function saveUserState() {
-            const key = getUserStorageKey();
-            localStorage.setItem(key, JSON.stringify({
+            if (!user.address) return;
+            localStorage.setItem(getUserStorageKey(), JSON.stringify({
                 balance: user.balance,
                 positions: user.positions
             }));
@@ -575,22 +671,18 @@
             const key = `arcdicUser_${address.toLowerCase()}`;
             const saved = localStorage.getItem(key);
             if (saved) {
-                const parsed = JSON.parse(saved);
-                user.balance = parsed.balance ?? 10000;
-                user.positions = parsed.positions ?? {};
+                const data = JSON.parse(saved);
+                user.balance = data.balance ?? 10000;
+                user.positions = data.positions ?? {};
             } else {
                 user.balance = 10000;
                 user.positions = {};
             }
         }
 
-        // Format helpers
+        // Formatting
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('en-US', { 
-                style: 'currency', 
-                currency: 'USD',
-                minimumFractionDigits: amount < 10 ? 2 : 0 
-            }).format(amount);
+            return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
         }
 
         function formatPrice(price) {
@@ -604,41 +696,50 @@
         }
 
         function getDaysLeft(endDateStr) {
-            const end = new Date(endDateStr);
-            const now = new Date('2026-05-19');
-            const diffTime = end - now;
+            const end = new Date(endDateStr + 'T23:59:59');
+            const now = new Date();
+            const diffTime = end.getTime() - now.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
             if (diffDays < 0) return 'Ended';
             if (diffDays === 0) return 'Today';
-            if (diffDays === 1) return '1 day';
-            return diffDays + ' days';
+            return diffDays + 'd';
         }
 
-        // Render category filters
+        // Render category filters (added Resolved)
         function renderCategoryFilters() {
             const container = document.getElementById('category-filters');
             container.innerHTML = '';
-            
-            const categories = ['all', 'Politics', 'Crypto', 'Sports', 'Tech', 'Entertainment', 'Economy'];
+
+            const categories = [
+                { key: 'all', label: 'All Markets', icon: 'fa-layer-group' },
+                { key: 'resolved', label: 'Resolved', icon: 'fa-check-circle' },
+                { key: 'Politics', label: 'Politics' },
+                { key: 'Crypto', label: 'Crypto' },
+                { key: 'Sports', label: 'Sports' },
+                { key: 'Tech', label: 'Tech' },
+                { key: 'Entertainment', label: 'Entertainment' },
+                { key: 'Economy', label: 'Economy' }
+            ];
+
             const colors = {
-                'all': 'bg-slate-700 text-white',
-                'Politics': 'bg-indigo-500/90 text-white',
-                'Crypto': 'bg-orange-500/90 text-white',
-                'Sports': 'bg-emerald-500/90 text-white',
-                'Tech': 'bg-sky-500/90 text-white',
-                'Entertainment': 'bg-pink-500/90 text-white',
-                'Economy': 'bg-amber-500/90 text-white'
+                'all': 'bg-slate-700 hover:bg-slate-600',
+                'resolved': 'bg-slate-500 text-white',
+                'Politics': 'bg-indigo-500/90',
+                'Crypto': 'bg-orange-500/90',
+                'Sports': 'bg-emerald-500/90',
+                'Tech': 'bg-sky-500/90',
+                'Entertainment': 'bg-pink-500/90',
+                'Economy': 'bg-amber-500/90'
             };
 
             categories.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = `px-4 py-1 text-xs font-medium rounded-2xl transition-all flex items-center gap-x-1.5 ${currentFilter === cat ? colors[cat] : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`;
-                btn.innerHTML = cat === 'all' ? 
-                    `<i class="fa-solid fa-layer-group fa-sm mr-1"></i> All` : 
-                    cat;
-                
+                btn.className = `px-5 py-2 text-xs font-medium rounded-3xl transition-all flex items-center gap-x-2 ${currentFilter === cat.key ? colors[cat.key] + ' text-white shadow-inner' : 'bg-slate-800 hover:bg-slate-700 text-slate-300'}`;
+                if (cat.icon) btn.innerHTML = `<i class="fa-solid ${cat.icon}"></i> ${cat.label}`;
+                else btn.textContent = cat.label;
+
                 btn.onclick = () => {
-                    currentFilter = cat;
+                    currentFilter = cat.key;
                     renderCategoryFilters();
                     filterMarkets();
                 };
@@ -646,352 +747,262 @@
             });
         }
 
-        // Main render function for markets grid
+        // Main render markets
         function renderMarkets(filteredMarkets) {
             const grid = document.getElementById('markets-grid');
             grid.innerHTML = '';
 
             if (filteredMarkets.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-3 text-center py-12 bg-slate-900 border border-slate-800 rounded-3xl">
-                        <i class="fa-solid fa-search text-3xl text-slate-600 mb-3"></i>
-                        <p class="text-slate-400">No markets found matching your filters.</p>
-                    </div>
-                `;
+                grid.innerHTML = `<div class="col-span-full text-center py-16 bg-slate-900 border border-slate-700 rounded-3xl">
+                    <i class="fa-solid fa-magnifying-glass text-4xl text-slate-500 mb-4"></i>
+                    <p class="text-slate-400">No markets match your search.</p>
+                </div>`;
                 return;
             }
 
             filteredMarkets.forEach(market => {
                 const card = document.createElement('div');
-                card.className = `market-card bg-slate-900 border border-slate-700 rounded-3xl p-5 flex flex-col`;
+                card.className = `market-card bg-slate-900 border border-slate-700 rounded-3xl p-6 flex flex-col cursor-pointer`;
                 
                 const yesPct = Math.round(market.yesPrice * 100);
                 const noPct = 100 - yesPct;
                 const daysLeft = getDaysLeft(market.endDate);
                 
-                let actionHTML = '';
-                
+                let bottomHTML = '';
+
                 if (market.resolved) {
-                    const winnerColor = market.winner === 'yes' ? 'emerald' : 'rose';
-                    actionHTML = `
-                        <div class="mt-auto pt-4 border-t border-slate-700">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <span class="px-3 py-1 text-xs font-bold tracking-wider rounded-2xl bg-${winnerColor}-500/10 text-${winnerColor}-400">
-                                        RESOLVED • ${market.winner.toUpperCase()} WON
-                                    </span>
-                                </div>
-                                <button onclick="resolveMarket(${market.id}, '${market.winner}'); event.stopImmediatePropagation();" 
-                                        class="text-xs px-3 py-1 text-slate-400 hover:text-white transition-colors">
-                                    <i class="fa-solid fa-redo fa-xs"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `;
+                    bottomHTML = `
+                        <div class="mt-auto pt-4 border-t border-slate-700 flex justify-between items-center">
+                            <span class="px-4 py-1 text-xs font-bold tracking-widest rounded-3xl bg-slate-800 text-slate-400">
+                                RESOLVED • ${market.winner.toUpperCase()} WINS
+                            </span>
+                            <button onclick="resolveMarket(${market.id}); event.stopImmediatePropagation()" class="text-xs text-slate-400 hover:text-emerald-400">
+                                <i class="fa-solid fa-rotate-right"></i>
+                            </button>
+                        </div>`;
                 } else {
-                    actionHTML = `
+                    bottomHTML = `
                         <div class="mt-auto pt-4 border-t border-slate-700 grid grid-cols-2 gap-3">
-                            <button onclick="openTradeModal(${market.id}, 'yes'); event.stopImmediatePropagation();"
-                                    class="price-btn flex flex-col items-center justify-center py-3 px-2 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 rounded-2xl transition-all active:scale-[0.985]">
-                                <div class="text-emerald-400 text-xs font-medium tracking-wider">YES</div>
-                                <div class="text-3xl font-semibold text-emerald-400 tabular-nums">${formatPrice(market.yesPrice)}</div>
+                            <button onclick="openTradeModal(${market.id}, 'yes'); event.stopImmediatePropagation();" class="price-btn flex flex-col items-center py-4 px-4 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-400/30 rounded-3xl">
+                                <div class="text-emerald-400 text-xs font-semibold tracking-widest">YES</div>
+                                <div class="text-4xl font-semibold text-emerald-400">${formatPrice(market.yesPrice)}</div>
                             </button>
-                            
-                            <button onclick="openTradeModal(${market.id}, 'no'); event.stopImmediatePropagation();"
-                                    class="price-btn flex flex-col items-center justify-center py-3 px-2 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 rounded-2xl transition-all active:scale-[0.985]">
-                                <div class="text-rose-400 text-xs font-medium tracking-wider">NO</div>
-                                <div class="text-3xl font-semibold text-rose-400 tabular-nums">${formatPrice(1 - market.yesPrice)}</div>
+                            <button onclick="openTradeModal(${market.id}, 'no'); event.stopImmediatePropagation();" class="price-btn flex flex-col items-center py-4 px-4 bg-rose-500/10 hover:bg-rose-500/20 border border-rose-400/30 rounded-3xl">
+                                <div class="text-rose-400 text-xs font-semibold tracking-widest">NO</div>
+                                <div class="text-4xl font-semibold text-rose-400">${formatPrice(1 - market.yesPrice)}</div>
                             </button>
-                        </div>
-                    `;
+                        </div>`;
                 }
 
                 card.innerHTML = `
-                    <div class="flex items-start justify-between mb-3">
-                        <span class="px-3 py-1 text-[10px] font-semibold tracking-wider rounded-2xl ${getCategoryColor(market.category)}">
-                            ${market.category}
-                        </span>
-                        <div class="text-right">
-                            <div class="text-xs text-slate-500">${daysLeft}</div>
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="px-4 py-1 text-xs font-semibold rounded-3xl ${getCategoryColor(market.category)}">${market.category}</span>
+                        <div class="flex flex-col items-end">
+                            <div class="text-xs text-slate-400">${daysLeft}</div>
+                            ${market.liquidity > 300000 ? `<div class="text-teal-400 text-[10px] mt-px">HIGH LIQ</div>` : ''}
                         </div>
                     </div>
                     
-                    <div class="font-semibold leading-tight mb-4 text-[15px] pr-1 line-clamp-3">
+                    <div class="font-semibold text-[15px] leading-tight mb-6 line-clamp-3 min-h-[72px]">
                         ${market.question}
                     </div>
                     
-                    <!-- Probability bar -->
-                    <div class="mb-4">
-                        <div class="flex justify-between text-xs mb-1.5 px-0.5">
-                            <div><span class="font-semibold text-emerald-400">${yesPct}%</span> <span class="text-slate-500">Yes</span></div>
-                            <div class="text-right"><span class="font-semibold text-rose-400">${noPct}%</span> <span class="text-slate-500">No</span></div>
+                    <div class="mb-6">
+                        <div class="flex justify-between text-xs mb-2">
+                            <div><span class="text-emerald-400 font-semibold">${yesPct}%</span> YES</div>
+                            <div><span class="text-rose-400 font-semibold">${noPct}%</span> NO</div>
                         </div>
-                        <div class="prediction-bar w-full bg-slate-700 rounded-full overflow-hidden" 
-                             style="--yes-pct: ${yesPct}%">
-                        </div>
+                        <div class="prediction-bar w-full" style="--yes-pct: ${yesPct}%"></div>
                     </div>
                     
-                    <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-                        <div>
-                            <span class="font-medium">${formatLargeNumber(market.volume)}</span> 
-                            <span class="text-[10px]">vol</span>
-                        </div>
+                    <div class="flex justify-between text-xs text-slate-400 mb-6">
+                        <div>${formatLargeNumber(market.volume)} vol</div>
                         <div>${market.traders.toLocaleString()} traders</div>
                     </div>
                     
-                    ${actionHTML}
+                    ${bottomHTML}
                 `;
-                
+
                 card.onclick = (e) => {
-                    if (!e.target.closest('button')) {
-                        if (!market.resolved) {
-                            openTradeModal(market.id, 'yes');
-                        }
-                    }
+                    if (e.target.closest('button')) return;
+                    if (!market.resolved) openTradeModal(market.id, 'yes');
                 };
-                
+
                 grid.appendChild(card);
             });
+
+            // Featured banner logic (first high-volume unresolved market)
+            const featured = filteredMarkets.find(m => !m.resolved && m.volume > 1000000);
+            const banner = document.getElementById('featured-banner');
+            if (featured) {
+                banner.classList.remove('hidden');
+                document.getElementById('featured-question').textContent = featured.question;
+                document.getElementById('featured-yes-pct').innerHTML = `${Math.round(featured.yesPrice*100)}% <span class="text-xs">YES</span>`;
+                document.getElementById('featured-no-pct').innerHTML = `${100-Math.round(featured.yesPrice*100)}% <span class="text-xs">NO</span>`;
+                window.currentFeatured = featured;
+            } else {
+                banner.classList.add('hidden');
+            }
         }
 
         function getCategoryColor(category) {
             const map = {
-                'Politics': 'bg-indigo-500/10 text-indigo-400',
-                'Crypto': 'bg-orange-500/10 text-orange-400',
-                'Sports': 'bg-emerald-500/10 text-emerald-400',
-                'Tech': 'bg-sky-500/10 text-sky-400',
-                'Entertainment': 'bg-pink-500/10 text-pink-400',
-                'Economy': 'bg-amber-500/10 text-amber-400'
+                Politics: 'bg-indigo-500/10 text-indigo-400',
+                Crypto: 'bg-orange-500/10 text-orange-400',
+                Sports: 'bg-emerald-500/10 text-emerald-400',
+                Tech: 'bg-sky-500/10 text-sky-400',
+                Entertainment: 'bg-pink-500/10 text-pink-400',
+                Economy: 'bg-amber-500/10 text-amber-400'
             };
             return map[category] || 'bg-slate-700 text-slate-300';
         }
 
-        // Filter + sort markets
         function filterMarkets() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase().trim();
+            const term = (document.getElementById('search-input').value || '').toLowerCase().trim();
             const sortMode = document.getElementById('sort-select').value;
 
-            let filtered = markets.filter(market => {
-                const matchesSearch = market.question.toLowerCase().includes(searchTerm);
-                const matchesCategory = currentFilter === 'all' || market.category === currentFilter;
-                return matchesSearch && matchesCategory;
+            let filtered = markets.filter(m => {
+                const matchSearch = !term || m.question.toLowerCase().includes(term);
+                const matchCategory = currentFilter === 'all' || 
+                    (currentFilter === 'resolved' ? m.resolved : m.category === currentFilter);
+                return matchSearch && matchCategory;
             });
 
-            if (sortMode === 'volume') {
-                filtered.sort((a, b) => b.volume - a.volume);
-            } else if (sortMode === 'newest') {
-                filtered.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
-            } else if (sortMode === 'price-high') {
-                filtered.sort((a, b) => b.yesPrice - a.yesPrice);
-            }
+            // Sorting
+            if (sortMode === 'volume') filtered.sort((a, b) => b.volume - a.volume);
+            else if (sortMode === 'newest') filtered.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+            else if (sortMode === 'price-high') filtered.sort((a, b) => b.yesPrice - a.yesPrice);
+            else if (sortMode === 'liquidity') filtered.sort((a, b) => b.liquidity - a.liquidity);
 
             renderMarkets(filtered);
         }
 
-        // Update stats
         function updateStats() {
             const active = markets.filter(m => !m.resolved).length;
             document.getElementById('active-markets').textContent = active;
+
+            const totalVol = markets.reduce((acc, m) => acc + m.volume, 0);
+            const volEl = document.getElementById('total-volume');
+            volEl.textContent = formatLargeNumber(totalVol);
             
-            const totalVol = markets.reduce((sum, m) => sum + m.volume, 0);
-            document.getElementById('total-volume').textContent = formatLargeNumber(totalVol);
+            // Animate numbers
+            document.querySelectorAll('.metric').forEach(el => {
+                el.style.animation = 'none';
+                void el.offsetWidth;
+                el.style.animation = 'countUp 1s ease-out forwards';
+            });
         }
 
-        // ==================== ARC TESTNET WALLET CONNECTION ====================
-        const ARC_CHAIN_ID = '0x4d0f02'; // 5042002 in hex
+        // ==================== WALLET (Arc Testnet) ====================
+        const ARC_CHAIN_ID = '0x4d0f02';
         const ARC_RPC = 'https://rpc.testnet.arc.network';
-        const ARC_EXPLORER = 'https://testnet.arcscan.app';
-        const ARC_CHAIN_NAME = 'Arc Testnet';
-        const ARC_CURRENCY = { name: 'USDC', symbol: 'USDC', decimals: 6 };
 
         async function ensureArcNetwork() {
-            if (!window.ethereum) throw new Error('No wallet found');
+            if (!window.ethereum) throw new Error('Wallet not found');
+            const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+            if (chainId === ARC_CHAIN_ID) return true;
 
             try {
-                const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
-                
-                if (currentChainId === ARC_CHAIN_ID) {
-                    return true;
-                }
-
-                try {
+                await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: ARC_CHAIN_ID }] });
+            } catch (e) {
+                if (e.code === 4902) {
                     await window.ethereum.request({
-                        method: 'wallet_switchEthereumChain',
-                        params: [{ chainId: ARC_CHAIN_ID }],
+                        method: 'wallet_addEthereumChain',
+                        params: [{
+                            chainId: ARC_CHAIN_ID,
+                            chainName: 'Arc Testnet',
+                            nativeCurrency: { name: 'USDC', symbol: 'USDC', decimals: 6 },
+                            rpcUrls: [ARC_RPC]
+                        }]
                     });
-                    return true;
-                } catch (switchError) {
-                    if (switchError.code === 4902) {
-                        await addArcNetwork();
-                        return true;
-                    } else {
-                        throw switchError;
-                    }
-                }
-            } catch (error) {
-                console.error('Network error:', error);
-                throw new Error('Failed to switch to Arc Testnet');
+                } else throw e;
             }
-        }
-
-        async function addArcNetwork() {
-            await window.ethereum.request({
-                method: 'wallet_addEthereumChain',
-                params: [{
-                    chainId: ARC_CHAIN_ID,
-                    chainName: ARC_CHAIN_NAME,
-                    nativeCurrency: ARC_CURRENCY,
-                    rpcUrls: [ARC_RPC],
-                    blockExplorerUrls: [ARC_EXPLORER]
-                }]
-            });
+            return true;
         }
 
         function updateWalletUI(address) {
             const btn = document.getElementById('connect-btn');
-            const shortAddr = address.slice(0, 6) + '...' + address.slice(-4);
+            const short = address.slice(0, 6) + '…' + address.slice(-4);
             
             btn.innerHTML = `
-                <div class="flex items-center gap-x-2">
-                    <div class="w-2 h-2 bg-emerald-400 rounded-full animate-pulse"></div>
-                    <span class="font-mono text-xs">${shortAddr}</span>
-                    <i class="fa-solid fa-chevron-down text-xs ml-1 opacity-70"></i>
-                </div>
+                <i class="fa-solid fa-circle-check text-emerald-400"></i>
+                <span class="font-mono">${short}</span>
             `;
-            
+            btn.classList.add('!bg-emerald-900', '!text-white', '!border-emerald-500');
             btn.onclick = disconnectWallet;
-            btn.classList.remove('bg-white', 'text-slate-900', 'hover:bg-slate-100');
-            btn.classList.add('bg-slate-800', 'text-white', 'border', 'border-slate-600', 'hover:bg-slate-700');
+
+            // Show balance pill
+            const pill = document.getElementById('balance-pill');
+            pill.classList.remove('hidden');
+            document.getElementById('nav-balance').textContent = user.balance.toLocaleString();
         }
 
         async function connectWallet() {
-            const btn = document.getElementById('connect-btn');
-
             if (!window.ethereum) {
-                showToast('No wallet detected. Please install MetaMask, Rabby, or Coinbase Wallet.', 'error');
-                setTimeout(() => {
-                    if (confirm('Would you like to open MetaMask download page?')) {
-                        window.open('https://metamask.io/download/', '_blank');
-                    }
-                }, 800);
+                showToast('Please install MetaMask / Rabby / Coinbase Wallet', 'error');
                 return;
             }
 
             try {
-                const accounts = await window.ethereum.request({ 
-                    method: 'eth_requestAccounts' 
-                });
-
-                if (!accounts || accounts.length === 0) {
-                    showToast('No accounts returned from wallet', 'error');
-                    return;
-                }
-
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
                 await ensureArcNetwork();
 
-                const address = accounts[0];
-                
                 user.connected = true;
-                user.address = address;
+                user.address = accounts[0];
+                loadUserStateForAddress(user.address);
+                updateWalletUI(user.address);
 
-                loadUserStateForAddress(address);
-
-                updateWalletUI(address);
-
-                showToast('Connected to Arcdic on Arc Testnet', 'success');
-                
+                showToast(`✅ Connected to Arc Testnet`, 'success');
                 updatePortfolio();
                 saveUserState();
-
-                setupWalletListeners();
-
             } catch (err) {
-                console.error('Connection error:', err);
-                let msg = 'Failed to connect wallet';
-                if (err.code === 4001) msg = 'Connection rejected by user';
-                if (err.message?.includes('User denied')) msg = 'Connection rejected';
-                showToast(msg, 'error');
+                showToast(err.message || 'Connection failed', 'error');
             }
         }
 
         function disconnectWallet() {
-            if (!confirm('Disconnect wallet from Arcdic?')) return;
-
+            if (!confirm('Disconnect wallet?')) return;
             user.connected = false;
             user.address = null;
 
             const btn = document.getElementById('connect-btn');
-            btn.innerHTML = `<i class="fa-solid fa-wallet"></i> <span id="connect-text">Connect Wallet</span>`;
+            btn.innerHTML = `<i class="fa-solid fa-wallet"></i><span id="connect-text">Connect Wallet</span>`;
+            btn.className = btn.className.replace(/!bg-emerald-900|!text-white|!border-emerald-500/g, '');
             btn.onclick = connectWallet;
-            btn.classList.remove('bg-slate-800', 'text-white', 'border', 'border-slate-600', 'hover:bg-slate-700');
-            btn.classList.add('bg-white', 'text-slate-900', 'hover:bg-slate-100');
 
-            document.getElementById('portfolio-balance').textContent = '$0.00';
-            document.getElementById('portfolio-value').textContent = '$0.00';
-            document.getElementById('positions-list').innerHTML = '';
-            document.getElementById('no-positions').classList.remove('hidden');
-            document.getElementById('portfolio-count').textContent = '0 active';
-
+            document.getElementById('balance-pill').classList.add('hidden');
             showToast('Wallet disconnected', 'info');
+            updatePortfolio();
         }
 
-        function setupWalletListeners() {
-            if (!window.ethereum) return;
-
-            window.ethereum.removeAllListeners?.('accountsChanged');
-            window.ethereum.removeAllListeners?.('chainChanged');
-
-            window.ethereum.on('accountsChanged', (accounts) => {
-                if (!accounts || accounts.length === 0) {
-                    disconnectWallet();
-                } else if (accounts[0].toLowerCase() !== (user.address || '').toLowerCase()) {
-                    user.address = accounts[0];
-                    loadUserStateForAddress(accounts[0]);
-                    updateWalletUI(accounts[0]);
-                    updatePortfolio();
-                    showToast('Switched to new account', 'info');
-                }
-            });
-
-            window.ethereum.on('chainChanged', (chainId) => {
-                if (chainId !== ARC_CHAIN_ID) {
-                    showToast('Please switch back to Arc Testnet', 'info');
-                    setTimeout(() => {
-                        ensureArcNetwork().catch(() => {});
-                    }, 800);
-                } else {
-                    showToast('Switched to Arc Testnet', 'success');
-                }
-            });
-        }
-
-        async function checkExistingConnection() {
-            if (!window.ethereum) return;
-
-            try {
-                const accounts = await window.ethereum.request({ method: 'eth_accounts' });
-                if (accounts && accounts.length > 0) {
-                    const currentChain = await window.ethereum.request({ method: 'eth_chainId' });
-                    
-                    if (currentChain === ARC_CHAIN_ID) {
-                        user.connected = true;
-                        user.address = accounts[0];
-                        loadUserStateForAddress(accounts[0]);
-                        
-                        const btn = document.getElementById('connect-btn');
-                        updateWalletUI(accounts[0]);
-                        
-                        setupWalletListeners();
-                        updatePortfolio();
+        // Live price simulation (new feature)
+        function startLivePriceSimulation() {
+            if (liveInterval) clearInterval(liveInterval);
+            liveInterval = setInterval(() => {
+                markets.forEach(m => {
+                    if (!m.resolved && Math.random() > 0.3) {
+                        const drift = (Math.random() * 0.06) - 0.03; // ±3%
+                        m.yesPrice = Math.max(0.03, Math.min(0.97, m.yesPrice + drift));
                     }
-                }
-            } catch (e) {
-                console.log('No existing connection');
-            }
+                });
+                filterMarkets();
+                if (!document.getElementById('portfolio-view').classList.contains('hidden')) updatePortfolio();
+            }, 12000);
         }
 
-        // ==================== END WALLET LOGIC ====================
+        function simulatePriceTick() {
+            // Manual trigger
+            markets.forEach(m => {
+                if (!m.resolved) {
+                    const drift = (Math.random() * 0.08) - 0.04;
+                    m.yesPrice = Math.max(0.03, Math.min(0.97, m.yesPrice + drift));
+                }
+            });
+            filterMarkets();
+            showToast('Live prices updated', 'success');
+        }
 
+        // Trade modal
         function openTradeModal(marketId, side) {
             const market = markets.find(m => m.id === marketId);
             if (!market || market.resolved) return;
@@ -999,161 +1010,127 @@
             currentTrade = { marketId, side };
 
             document.getElementById('modal-question').textContent = market.question;
-            document.getElementById('modal-category').innerHTML = `<span class="px-2.5 py-0.5 text-xs rounded-xl ${getCategoryColor(market.category)}">${market.category}</span>`;
-            document.getElementById('modal-end-date').innerHTML = `<i class="fa-regular fa-clock mr-1"></i> Ends in ${getDaysLeft(market.endDate)}`;
+            document.getElementById('modal-category').innerHTML = `<span class="${getCategoryColor(market.category)} px-4 py-1 rounded-3xl text-xs">${market.category}</span>`;
+            document.getElementById('modal-end-date').innerHTML = `<i class="fa-solid fa-clock"></i> ${getDaysLeft(market.endDate)}`;
 
-            const outcomeContainer = document.getElementById('outcome-buttons');
-            outcomeContainer.innerHTML = `
-                <button onclick="selectOutcome('yes')" id="outcome-yes-btn"
-                        class="flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all ${side === 'yes' ? 'bg-emerald-500/20 border-emerald-500 text-emerald-400' : 'border-slate-600 hover:border-emerald-400/60'}">
-                    <div>
-                        <div class="text-xs font-medium">YES</div>
-                        <div class="text-2xl font-semibold tabular-nums">${formatPrice(market.yesPrice)}</div>
-                    </div>
+            const container = document.getElementById('outcome-buttons');
+            container.innerHTML = `
+                <button onclick="selectOutcome('yes')" id="btn-yes" class="w-full py-6 rounded-3xl border-2 flex flex-col items-center justify-center transition-all ${side==='yes'?'border-emerald-400 bg-emerald-500/10':'border-transparent hover:border-emerald-300 bg-slate-800'}">
+                    <div class="text-emerald-400 text-sm font-bold">YES</div>
+                    <div class="text-4xl font-semibold">${formatPrice(market.yesPrice)}</div>
                 </button>
-                <button onclick="selectOutcome('no')" id="outcome-no-btn"
-                        class="flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all ${side === 'no' ? 'bg-rose-500/20 border-rose-500 text-rose-400' : 'border-slate-600 hover:border-rose-400/60'}">
-                    <div>
-                        <div class="text-xs font-medium">NO</div>
-                        <div class="text-2xl font-semibold tabular-nums">${formatPrice(1 - market.yesPrice)}</div>
-                    </div>
+                <button onclick="selectOutcome('no')" id="btn-no" class="w-full py-6 rounded-3xl border-2 flex flex-col items-center justify-center transition-all ${side==='no'?'border-rose-400 bg-rose-500/10':'border-transparent hover:border-rose-300 bg-slate-800'}">
+                    <div class="text-rose-400 text-sm font-bold">NO</div>
+                    <div class="text-4xl font-semibold">${formatPrice(1-market.yesPrice)}</div>
                 </button>
             `;
 
             updateModalPrice(market, side);
-
-            document.getElementById('modal-balance').innerHTML = user.connected ? 
-                `${formatCurrency(user.balance)} <span class="text-xs text-slate-400">USDC</span>` : 
-                `<span class="text-rose-400">Connect wallet to trade</span>`;
+            document.getElementById('modal-balance').innerHTML = user.connected 
+                ? `${formatCurrency(user.balance)} <span class="text-xs font-normal text-slate-400">USDC</span>` 
+                : `<span class="text-rose-400">Connect wallet to trade</span>`;
 
             document.getElementById('trade-amount').value = '';
-            document.getElementById('preview-shares').textContent = '0.00 shares';
-            document.getElementById('preview-payout').textContent = '$0.00';
-            document.getElementById('preview-profit').textContent = '+$0.00 (+0%)';
-            document.getElementById('preview-avg-price').textContent = '—';
+            calculateTradePreview();
 
-            const actionBtn = document.getElementById('trade-action-btn');
-            actionBtn.innerHTML = `<span>Buy ${side.toUpperCase()} Shares</span>`;
-            actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${side === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
+            const btn = document.getElementById('trade-action-btn');
+            btn.innerHTML = `Buy <span class="uppercase">${side}</span> shares`;
+            btn.className = `w-full py-5 rounded-3xl font-bold text-lg flex items-center justify-center gap-x-3 transition-all ${side==='yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
 
             document.getElementById('trade-modal').classList.remove('hidden');
             document.getElementById('trade-modal').classList.add('flex');
-
-            setTimeout(() => {
-                document.getElementById('trade-amount').focus();
-            }, 300);
         }
 
-        function selectOutcome(newSide) {
+        function selectOutcome(side) {
+            currentTrade.side = side;
             const market = markets.find(m => m.id === currentTrade.marketId);
-            if (!market) return;
+            updateModalPrice(market, side);
 
-            currentTrade.side = newSide;
+            const btn = document.getElementById('trade-action-btn');
+            btn.innerHTML = `Buy <span class="uppercase">${side}</span> shares`;
+            btn.className = `w-full py-5 rounded-3xl font-bold text-lg flex items-center justify-center gap-x-3 transition-all ${side==='yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
 
-            const yesBtn = document.getElementById('outcome-yes-btn');
-            const noBtn = document.getElementById('outcome-no-btn');
-
-            if (newSide === 'yes') {
-                yesBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all bg-emerald-500/20 border-emerald-500 text-emerald-400`;
-                noBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all border-slate-600 hover:border-rose-400/60`;
+            const yesBtn = document.getElementById('btn-yes');
+            const noBtn = document.getElementById('btn-no');
+            if (side === 'yes') {
+                yesBtn.classList.add('border-emerald-400', 'bg-emerald-500/10');
+                noBtn.classList.remove('border-rose-400', 'bg-rose-500/10');
             } else {
-                yesBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all border-slate-600 hover:border-emerald-400/60`;
-                noBtn.className = `flex-1 py-3 px-4 rounded-2xl border flex items-center justify-center gap-x-2 transition-all bg-rose-500/20 border-rose-500 text-rose-400`;
+                noBtn.classList.add('border-rose-400', 'bg-rose-500/10');
+                yesBtn.classList.remove('border-emerald-400', 'bg-emerald-500/10');
             }
-
-            updateModalPrice(market, newSide);
-
-            const actionBtn = document.getElementById('trade-action-btn');
-            actionBtn.innerHTML = `Buy ${newSide.toUpperCase()} Shares`;
-            actionBtn.className = `w-full py-4 rounded-2xl font-bold text-base flex items-center justify-center gap-x-2 transition-all active:scale-[0.985] ${newSide === 'yes' ? 'bg-emerald-600 hover:bg-emerald-500' : 'bg-rose-600 hover:bg-rose-500'} text-white`;
-            
             calculateTradePreview();
         }
 
         function updateModalPrice(market, side) {
-            const priceEl = document.getElementById('modal-current-price');
-            const probEl = document.getElementById('modal-probability');
-
-            const price = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
-            
-            priceEl.innerHTML = formatPrice(price);
-            probEl.innerHTML = Math.round(price * 100) + '%';
+            const price = side === 'yes' ? market.yesPrice : 1 - market.yesPrice;
+            document.getElementById('modal-current-price').textContent = formatPrice(price);
+            document.getElementById('modal-probability').innerHTML = `${Math.round(price * 100)}<span class="text-base font-medium ml-1">%</span>`;
         }
 
         function calculateTradePreview() {
-            if (!currentTrade.marketId) return;
-
+            const amount = parseFloat(document.getElementById('trade-amount').value) || 0;
+            if (!currentTrade.marketId || amount <= 0) {
+                document.getElementById('preview-shares').textContent = '0.00 shares';
+                return;
+            }
             const market = markets.find(m => m.id === currentTrade.marketId);
-            const amountInput = parseFloat(document.getElementById('trade-amount').value) || 0;
             const side = currentTrade.side;
+            const price = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
 
-            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+            const shares = amount / price;
+            const payout = shares * 1;
+            const profit = payout - amount;
+            const roi = amount ? Math.round((profit / amount) * 100) : 0;
 
-            const shares = amountInput / currentPrice;
-            const potentialPayout = shares * 1;
-            const profit = potentialPayout - amountInput;
-            const roi = amountInput > 0 ? ((profit / amountInput) * 100) : 0;
+            document.getElementById('preview-shares').textContent = `${shares.toFixed(2)} shares`;
+            document.getElementById('preview-avg-price').textContent = formatPrice(price);
+            document.getElementById('preview-payout').textContent = formatCurrency(payout);
+            document.getElementById('preview-profit').innerHTML = `+${formatCurrency(profit)} <span class="text-xs">(${roi}%)</span>`;
+        }
 
-            document.getElementById('preview-shares').innerHTML = `${shares.toFixed(2)} shares`;
-            document.getElementById('preview-avg-price').innerHTML = formatPrice(currentPrice);
-            document.getElementById('preview-payout').innerHTML = formatCurrency(potentialPayout);
-            document.getElementById('preview-profit').innerHTML = `+${formatCurrency(profit)} (+${roi.toFixed(0)}%)`;
+        function quickAmount(val) {
+            document.getElementById('trade-amount').value = val;
+            calculateTradePreview();
         }
 
         function setMaxAmount() {
-            if (!user.connected) {
-                showToast('Please connect your wallet first', 'error');
-                return;
-            }
-            document.getElementById('trade-amount').value = user.balance.toFixed(2);
+            if (!user.connected) return showToast('Connect wallet first', 'error');
+            document.getElementById('trade-amount').value = user.balance;
             calculateTradePreview();
         }
 
         function executeTrade() {
-            if (!user.connected) {
-                showToast('Please connect your wallet to trade on Arcdic', 'error');
-                return;
-            }
+            if (!user.connected) return showToast('Connect your wallet on Arc Testnet', 'error');
 
             const amount = parseFloat(document.getElementById('trade-amount').value);
-            if (!amount || amount <= 0) {
-                showToast('Please enter a valid amount', 'error');
-                return;
-            }
+            if (!amount || amount > user.balance) return showToast('Insufficient balance', 'error');
 
             const market = markets.find(m => m.id === currentTrade.marketId);
             const side = currentTrade.side;
-            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+            const price = side === 'yes' ? market.yesPrice : 1 - market.yesPrice;
 
-            if (amount > user.balance) {
-                showToast('Insufficient USDC balance', 'error');
-                return;
-            }
+            const shares = amount / price;
 
-            const sharesBought = amount / currentPrice;
-
+            // Update user
             user.balance -= amount;
+            if (!user.positions[market.id]) user.positions[market.id] = { yes: 0, no: 0, costBasis: 0 };
+            user.positions[market.id][side] += shares;
+            user.positions[market.id].costBasis += amount; // simple cost tracking for P&L
 
-            if (!user.positions[market.id]) {
-                user.positions[market.id] = { yes: 0, no: 0 };
-            }
-            user.positions[market.id][side] = (user.positions[market.id][side] || 0) + sharesBought;
+            // Price impact (improved)
+            const impact = Math.min(0.04, amount / 80000);
+            if (side === 'yes') market.yesPrice = Math.min(0.97, market.yesPrice + impact);
+            else market.yesPrice = Math.max(0.03, market.yesPrice - impact);
 
-            const impact = (amount / 120000);
-            if (side === 'yes') {
-                market.yesPrice = Math.min(0.98, market.yesPrice + impact);
-            } else {
-                market.yesPrice = Math.max(0.02, market.yesPrice - impact);
-            }
             market.volume += amount;
+            market.traders = Math.max(market.traders, Math.floor(Math.random()*200) + market.traders);
 
             saveMarkets();
             saveUserState();
-
             closeTradeModal();
 
-            showToast(`Bought ${sharesBought.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(amount)}`, 'success');
-
+            showToast(`✅ Bought ${shares.toFixed(1)} ${side.toUpperCase()} shares`, 'success');
             filterMarkets();
             updateStats();
             updatePortfolio();
@@ -1166,153 +1143,87 @@
             currentTrade = { marketId: null, side: null };
         }
 
-        function switchTab(tab) {
-            const marketsView = document.getElementById('markets-view');
-            const portfolioView = document.getElementById('portfolio-view');
-            const tabMarkets = document.getElementById('tab-markets');
-            const tabPortfolio = document.getElementById('tab-portfolio');
-
-            if (tab === 'markets') {
-                marketsView.classList.remove('hidden');
-                portfolioView.classList.add('hidden');
-                tabMarkets.classList.add('nav-active');
-                tabPortfolio.classList.remove('nav-active');
-            } else {
-                marketsView.classList.add('hidden');
-                portfolioView.classList.remove('hidden');
-                tabMarkets.classList.remove('nav-active');
-                tabPortfolio.classList.add('nav-active');
-                updatePortfolio();
-            }
-        }
-
+        // Portfolio
         function updatePortfolio() {
-            if (!user.connected || !user.address) {
-                document.getElementById('portfolio-balance').textContent = '$0.00';
-                document.getElementById('portfolio-value').textContent = '$0.00';
-                document.getElementById('positions-list').innerHTML = '';
+            if (!user.connected) {
+                document.getElementById('portfolio-balance').textContent = '$0';
                 document.getElementById('no-positions').classList.remove('hidden');
-                document.getElementById('portfolio-count').textContent = '0 active';
                 return;
             }
 
-            document.getElementById('portfolio-balance').textContent = formatCurrency(user.balance);
+            document.getElementById('portfolio-balance').innerHTML = formatCurrency(user.balance);
 
             let totalValue = 0;
+            let totalCost = 0;
             let activeCount = 0;
-            const positionsHTML = [];
+            const htmlParts = [];
 
-            Object.keys(user.positions).forEach(marketIdStr => {
-                const marketId = parseInt(marketIdStr);
-                const market = markets.find(m => m.id === marketId);
+            Object.keys(user.positions).forEach(idStr => {
+                const id = parseInt(idStr);
+                const market = markets.find(m => m.id === id);
                 if (!market) return;
 
-                const pos = user.positions[marketId];
+                const pos = user.positions[id];
                 const yesShares = pos.yes || 0;
                 const noShares = pos.no || 0;
-
-                if (yesShares === 0 && noShares === 0) return;
+                if (yesShares + noShares === 0) return;
 
                 activeCount++;
 
                 if (!market.resolved) {
-                    const yesValue = yesShares * market.yesPrice;
-                    const noValue = noShares * (1 - market.yesPrice);
-                    totalValue += yesValue + noValue;
+                    const yesVal = yesShares * market.yesPrice;
+                    const noVal = noShares * (1 - market.yesPrice);
+                    totalValue += yesVal + noVal;
+                    totalCost += pos.costBasis || 0;
 
-                    const positionHTML = `
-                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1 pr-4">
-                                    <div class="text-xs text-slate-400 mb-1">${market.category} • ${getDaysLeft(market.endDate)}</div>
-                                    <div class="font-semibold text-sm leading-tight">${market.question}</div>
-                                </div>
-                                
-                                <div class="text-right text-xs whitespace-nowrap">
-                                    <div class="font-mono text-emerald-400">${formatPrice(market.yesPrice)} Yes</div>
-                                    <div class="font-mono text-rose-400">${formatPrice(1-market.yesPrice)} No</div>
-                                </div>
-                            </div>
-
-                            <div class="mt-4 pt-4 border-t border-slate-700 grid grid-cols-2 gap-4 text-sm">
-                                ${yesShares > 0 ? `
-                                <div>
-                                    <div class="flex justify-between">
-                                        <div class="text-emerald-400 text-xs">YES SHARES</div>
-                                        <div class="font-semibold tabular-nums">${yesShares.toFixed(1)}</div>
-                                    </div>
-                                    <div class="text-xs text-emerald-300/70 mt-0.5">Potential: ${formatCurrency(yesShares)}</div>
-                                </div>` : ''}
-
-                                ${noShares > 0 ? `
-                                <div>
-                                    <div class="flex justify-between">
-                                        <div class="text-rose-400 text-xs">NO SHARES</div>
-                                        <div class="font-semibold tabular-nums">${noShares.toFixed(1)}</div>
-                                    </div>
-                                    <div class="text-xs text-rose-300/70 mt-0.5">Potential: ${formatCurrency(noShares)}</div>
-                                </div>` : ''}
-                            </div>
-
-                            <div class="flex gap-x-2 mt-4">
-                                ${yesShares > 0 ? `
-                                <button onclick="sellPosition(${marketId}, 'yes')" 
-                                        class="flex-1 text-xs py-2 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-700/60 rounded-2xl transition-colors">
-                                    Sell Yes
-                                </button>` : ''}
-                                
-                                ${noShares > 0 ? `
-                                <button onclick="sellPosition(${marketId}, 'no')" 
-                                        class="flex-1 text-xs py-2 bg-rose-900/30 hover:bg-rose-900/50 border border-rose-700/60 rounded-2xl transition-colors">
-                                    Sell No
-                                </button>` : ''}
-                            </div>
-                        </div>
-                    `;
-                    positionsHTML.push(positionHTML);
-                } else {
-                    const winningSide = market.winner;
-                    const winningShares = pos[winningSide] || 0;
-                    const winnings = winningShares * 1;
-
-                    if (winningShares > 0) {
-                        totalValue += winnings;
-                    }
-
-                    const positionHTML = `
-                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-5 opacity-90">
+                    htmlParts.push(`
+                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6">
                             <div class="flex justify-between">
-                                <div>
-                                    <span class="text-xs px-2.5 py-0.5 rounded-xl bg-slate-700 text-slate-300">RESOLVED</span>
+                                <div class="flex-1">
+                                    <div class="text-xs text-slate-400">${market.category} • ${getDaysLeft(market.endDate)}</div>
+                                    <p class="font-medium leading-tight mt-1">${market.question}</p>
                                 </div>
-                                <div class="text-xs text-slate-400">${market.winner.toUpperCase()} WON</div>
+                                <div class="text-right text-xs font-mono">
+                                    <div class="text-emerald-400">${formatPrice(market.yesPrice)} YES</div>
+                                    <div class="text-rose-400">${formatPrice(1-market.yesPrice)} NO</div>
+                                </div>
                             </div>
-                            <div class="mt-2 font-medium">${market.question}</div>
-                            
-                            <div class="mt-3 text-sm">
-                                ${winningShares > 0 ? 
-                                    `<span class="font-semibold text-emerald-400">You won ${formatCurrency(winnings)} from ${winningShares.toFixed(1)} shares</span>` : 
-                                    `<span class="text-slate-400">Position closed — no winnings</span>`}
+                            <div class="mt-6 grid grid-cols-2 gap-8 text-sm">
+                                ${yesShares ? `<div><span class="text-emerald-400">YES</span> ${yesShares.toFixed(1)} shares • <span class="font-medium">${formatCurrency(yesVal)}</span></div>` : ''}
+                                ${noShares ? `<div><span class="text-rose-400">NO</span> ${noShares.toFixed(1)} shares • <span class="font-medium">${formatCurrency(noVal)}</span></div>` : ''}
+                            </div>
+                            <div class="flex gap-x-3 mt-6">
+                                ${yesShares ? `<button onclick="sellPosition(${id}, 'yes')" class="flex-1 py-3 text-xs font-medium bg-emerald-900/50 hover:bg-emerald-900 rounded-3xl">Sell YES</button>` : ''}
+                                ${noShares ? `<button onclick="sellPosition(${id}, 'no')" class="flex-1 py-3 text-xs font-medium bg-rose-900/50 hover:bg-rose-900 rounded-3xl">Sell NO</button>` : ''}
                             </div>
                         </div>
-                    `;
-                    positionsHTML.push(positionHTML);
+                    `);
+                } else {
+                    const winSide = market.winner;
+                    const winningShares = pos[winSide] || 0;
+                    const winnings = winningShares * 1;
+                    totalValue += winnings;
+
+                    htmlParts.push(`
+                        <div class="bg-slate-900 border border-slate-700 rounded-3xl p-6 opacity-90">
+                            <div class="flex justify-between text-xs"><span class="px-3 py-1 bg-slate-700 rounded-2xl">RESOLVED</span><span>${market.winner.toUpperCase()} WON</span></div>
+                            <p class="mt-3 font-medium">${market.question}</p>
+                            ${winningShares ? `<div class="mt-4 text-emerald-400 font-semibold">You earned ${formatCurrency(winnings)}</div>` : `<div class="mt-4 text-slate-400">Position closed with no payout</div>`}
+                        </div>
+                    `);
                 }
             });
 
             document.getElementById('portfolio-value').textContent = formatCurrency(totalValue);
-            document.getElementById('portfolio-count').textContent = `${activeCount} active`;
+            const pl = totalValue - totalCost;
+            document.getElementById('portfolio-pl').innerHTML = pl >= 0 ? `+${formatCurrency(pl)}` : formatCurrency(pl);
+            document.getElementById('portfolio-pl-pct').innerHTML = totalCost ? `<span class="${pl>=0?'text-emerald-400':'text-rose-400'}">${((pl/totalCost)*100).toFixed(1)}%</span>` : '—';
 
-            const listContainer = document.getElementById('positions-list');
-            const noPos = document.getElementById('no-positions');
+            document.getElementById('portfolio-count').textContent = `${activeCount} positions`;
 
-            if (positionsHTML.length > 0) {
-                listContainer.innerHTML = positionsHTML.join('');
-                noPos.classList.add('hidden');
-            } else {
-                listContainer.innerHTML = '';
-                noPos.classList.remove('hidden');
-            }
+            const container = document.getElementById('positions-list');
+            container.innerHTML = htmlParts.join('') || '';
+            document.getElementById('no-positions').classList.toggle('hidden', htmlParts.length > 0);
         }
 
         function sellPosition(marketId, side) {
@@ -1320,80 +1231,62 @@
             if (!market || market.resolved) return;
 
             const pos = user.positions[marketId];
-            if (!pos || !pos[side]) return;
+            const shares = pos[side];
+            if (!shares) return;
 
-            const currentShares = pos[side];
-            const currentPrice = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+            const price = side === 'yes' ? market.yesPrice : (1 - market.yesPrice);
+            const proceeds = shares * price;
 
-            const toSellStr = prompt(`You have ${currentShares.toFixed(2)} ${side.toUpperCase()} shares.\n\nHow many would you like to sell?`, currentShares.toFixed(2));
-            if (!toSellStr) return;
+            if (confirm(`Sell all ${shares.toFixed(1)} ${side} shares for ${formatCurrency(proceeds)}?`)) {
+                user.balance += proceeds;
+                pos[side] = 0;
+                if (pos.yes + pos.no < 0.01) delete user.positions[marketId];
 
-            const toSell = parseFloat(toSellStr);
-            if (isNaN(toSell) || toSell <= 0 || toSell > currentShares) {
-                showToast('Invalid amount', 'error');
-                return;
+                // Reverse impact
+                const impact = Math.min(0.03, proceeds / 80000);
+                if (side === 'yes') market.yesPrice = Math.max(0.03, market.yesPrice - impact);
+                else market.yesPrice = Math.min(0.97, market.yesPrice + impact);
+
+                market.volume += proceeds;
+
+                saveMarkets();
+                saveUserState();
+                showToast(`Sold ${side.toUpperCase()} for ${formatCurrency(proceeds)}`, 'success');
+                filterMarkets();
+                updatePortfolio();
             }
-
-            const proceeds = toSell * currentPrice;
-
-            user.balance += proceeds;
-            pos[side] -= toSell;
-
-            if (pos[side] < 0.001) pos[side] = 0;
-
-            const impact = (proceeds / 120000);
-            if (side === 'yes') {
-                market.yesPrice = Math.max(0.02, market.yesPrice - impact);
-            } else {
-                market.yesPrice = Math.min(0.98, market.yesPrice + impact);
-            }
-
-            market.volume += proceeds;
-
-            saveMarkets();
-            saveUserState();
-
-            showToast(`Sold ${toSell.toFixed(1)} ${side.toUpperCase()} shares for ${formatCurrency(proceeds)}`, 'success');
-
-            filterMarkets();
-            updatePortfolio();
         }
 
         function claimAllWinnings() {
-            let claimed = 0;
-
-            Object.keys(user.positions).forEach(marketIdStr => {
-                const marketId = parseInt(marketIdStr);
-                const market = markets.find(m => m.id === marketId);
-                if (!market || !market.resolved) return;
-
-                const pos = user.positions[marketId];
-                const winningSide = market.winner;
-                const winningShares = pos[winningSide] || 0;
-
-                if (winningShares > 0) {
-                    const winnings = winningShares;
-                    user.balance += winnings;
-                    claimed += winnings;
-                    pos[winningSide] = 0;
+            let total = 0;
+            Object.keys(user.positions).forEach(key => {
+                const market = markets.find(m => m.id === parseInt(key));
+                if (market && market.resolved) {
+                    const winSide = market.winner;
+                    const shares = user.positions[key][winSide] || 0;
+                    if (shares > 0) {
+                        total += shares;
+                        user.balance += shares;
+                        user.positions[key][winSide] = 0;
+                    }
                 }
             });
-
-            if (claimed > 0) {
+            if (total > 0) {
                 saveUserState();
-                showToast(`Claimed ${formatCurrency(claimed)} in winnings on Arcdic!`, 'success');
                 updatePortfolio();
-            } else {
-                showToast('No winnings to claim', 'info');
+                showToast(`Claimed ${formatCurrency(total)}`, 'success');
             }
         }
 
+        // Create market
         function showCreateModal() {
-            document.getElementById('create-modal').classList.remove('hidden');
-            document.getElementById('create-modal').classList.add('flex');
-            
+            const modal = document.getElementById('create-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
             const dateInput = document.getElementById('new-end-date');
-            const future = new Date('2026-08-19');
+            const future = new Date();
+            future.setDate(future.getDate() + 90);
             dateInput.value = future.toISOString().split('T')[0];
         }
 
@@ -1404,125 +1297,122 @@
         }
 
         function updatePriceLabel() {
-            const val = document.getElementById('new-yes-price').value;
-            document.getElementById('new-yes-price-label').textContent = val;
+            document.getElementById('new-yes-price-label').textContent = document.getElementById('new-yes-price').value;
         }
 
         function createNewMarket() {
             const question = document.getElementById('new-question').value.trim();
-            if (!question) {
-                alert('Please enter a market question');
-                return;
-            }
+            if (!question) return alert('Enter a question');
 
             const category = document.getElementById('new-category').value;
             const endDate = document.getElementById('new-end-date').value;
-            const yesPriceInput = parseInt(document.getElementById('new-yes-price').value) / 100;
+            const yesPrice = parseInt(document.getElementById('new-yes-price').value) / 100;
+
+            if (new Date(endDate) < new Date()) return alert('End date must be in the future');
 
             const newMarket = {
                 id: Date.now(),
-                question: question,
-                category: category,
-                yesPrice: yesPriceInput,
+                question,
+                category,
+                yesPrice,
                 volume: 0,
-                endDate: endDate || '2026-12-31',
-                liquidity: Math.floor(Math.random() * 80000) + 20000,
-                traders: Math.floor(Math.random() * 300) + 40,
+                endDate,
+                liquidity: Math.random() * 400000 + 100000,
+                traders: Math.floor(Math.random() * 400) + 50,
                 resolved: false,
                 winner: null
             };
 
             markets.unshift(newMarket);
             saveMarkets();
-
             closeCreateModal();
             filterMarkets();
             updateStats();
-
-            showToast('New market created successfully on Arcdic!', 'success');
-
-            document.getElementById('new-question').value = '';
+            showToast('Market launched on Arcdic!', 'success');
         }
 
-        function resolveMarket(marketId, forcedWinner = null) {
-            const market = markets.find(m => m.id === marketId);
+        function resolveMarket(id) {
+            const market = markets.find(m => m.id === id);
             if (!market) return;
 
-            if (!forcedWinner) {
-                const choice = prompt('Resolve market as YES or NO?\nType "yes" or "no"', 'yes');
-                if (!choice || (choice.toLowerCase() !== 'yes' && choice.toLowerCase() !== 'no')) return;
-                forcedWinner = choice.toLowerCase();
-            }
+            const choice = prompt('Resolve as YES or NO?', 'yes');
+            if (!['yes','no'].includes(choice?.toLowerCase())) return;
 
             market.resolved = true;
-            market.winner = forcedWinner;
+            market.winner = choice.toLowerCase();
 
-            if (user.positions[marketId]) {
-                const pos = user.positions[marketId];
-                const winningShares = pos[forcedWinner] || 0;
-                if (winningShares > 0) {
+            if (user.positions[id]) {
+                const winningShares = user.positions[id][market.winner] || 0;
+                if (winningShares) {
                     user.balance += winningShares;
-                    showToast(`Market resolved! You won ${formatCurrency(winningShares)}`, 'success');
+                    showToast(`You received ${formatCurrency(winningShares)} from this resolution`, 'success');
                 }
-                pos.yes = 0;
-                pos.no = 0;
             }
 
             saveMarkets();
             saveUserState();
-
             filterMarkets();
             updatePortfolio();
         }
 
+        // Toast
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
-            
             const toast = document.createElement('div');
-            let bg = 'bg-emerald-600';
-            let icon = 'fa-check-circle';
-            
-            if (type === 'error') {
-                bg = 'bg-rose-600';
-                icon = 'fa-exclamation-circle';
-            } else if (type === 'info') {
-                bg = 'bg-sky-600';
-                icon = 'fa-info-circle';
-            }
-
-            toast.className = `${bg} text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-x-3 max-w-xs text-sm`;
+            toast.className = `toast flex items-center gap-x-3 px-6 py-4 rounded-3xl shadow-2xl text-white max-w-xs ${type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-rose-600' : 'bg-sky-600'}`;
             toast.innerHTML = `
-                <i class="fa-solid ${icon}"></i>
-                <span>${message}</span>
+                <i class="fa-solid ${type==='success'?'fa-check-circle':type==='error'?'fa-circle-exclamation':'fa-info-circle'}"></i>
+                <span class="flex-1">${message}</span>
             `;
-
             container.appendChild(toast);
 
             setTimeout(() => {
-                toast.style.transition = 'all 0.3s ease';
+                toast.style.transitionDuration = '300ms';
                 toast.style.opacity = '0';
-                setTimeout(() => toast.remove(), 200);
-            }, 2800);
+                toast.style.transform = 'translateY(10px)';
+                setTimeout(() => toast.remove(), 300);
+            }, 3200);
         }
 
-        function setupKeyboardShortcuts() {
-            document.addEventListener('keydown', function(e) {
+        // Tab switch
+        function switchTab(tab) {
+            const marketsView = document.getElementById('markets-view');
+            const portfolioView = document.getElementById('portfolio-view');
+            const tabM = document.getElementById('tab-markets');
+            const tabP = document.getElementById('tab-portfolio');
+
+            if (tab === 'markets') {
+                marketsView.classList.remove('hidden');
+                portfolioView.classList.add('hidden');
+                tabM.classList.add('nav-active');
+                tabP.classList.remove('nav-active');
+            } else {
+                marketsView.classList.add('hidden');
+                portfolioView.classList.remove('hidden');
+                tabM.classList.remove('nav-active');
+                tabP.classList.add('nav-active');
+                updatePortfolio();
+            }
+        }
+
+        function openFeaturedTrade() {
+            if (window.currentFeatured) {
+                openTradeModal(window.currentFeatured.id, 'yes');
+            }
+        }
+
+        // Keyboard shortcuts & final init
+        function setupShortcuts() {
+            document.addEventListener('keydown', e => {
                 if (e.key === '/' && document.activeElement.tagName === 'BODY') {
                     e.preventDefault();
                     document.getElementById('search-input').focus();
                 }
-                
-                if (e.key.toLowerCase() === '?' && !document.getElementById('trade-modal').classList.contains('hidden')) {
-                    e.preventDefault();
-                    const amountInput = document.getElementById('trade-amount');
-                    amountInput.focus();
-                    amountInput.select();
-                }
-            });
-
-            document.addEventListener('keypress', function(e) {
-                if (e.key.toLowerCase() === 'r' && !document.getElementById('markets-view').classList.contains('hidden')) {
-                    filterMarkets();
+                if (e.key === 'Escape') {
+                    const tradeModal = document.getElementById('trade-modal');
+                    const createModal = document.getElementById('create-modal');
+                    if (tradeModal.classList.contains('flex')) closeTradeModal();
+                    else if (createModal.classList.contains('flex')) closeCreateModal();
                 }
             });
         }
@@ -1530,33 +1420,30 @@
         async function initializeApp() {
             initTailwind();
             initMarkets();
-
             renderCategoryFilters();
             filterMarkets();
             updateStats();
+            startLivePriceSimulation();
+            setupShortcuts();
 
-            await checkExistingConnection();
+            // Check wallet
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        await ensureArcNetwork();
+                        user.connected = true;
+                        user.address = accounts[0];
+                        loadUserStateForAddress(user.address);
+                        updateWalletUI(user.address);
+                    }
+                } catch (e) {}
+            }
 
             updatePortfolio();
 
-            document.getElementById('search-input').addEventListener('input', filterMarkets);
-            
-            const statsBar = document.querySelector('.border-b.border-slate-800.bg-slate-900\\/50');
-            if (statsBar) {
-                statsBar.addEventListener('click', () => {
-                    showToast('Arcdic is a fully functional prediction market demo on Arc Testnet (Chain ID 5042002).', 'info');
-                });
-            }
-
-            setupKeyboardShortcuts();
-
-            setTimeout(() => {
-                if (!localStorage.getItem('arcdicMarkets')) {
-                    showToast('Welcome to Arcdic — Prediction Markets on Arc Testnet. Connect your wallet to start trading!', 'info');
-                }
-            }, 1800);
-
-            console.log('%c[Arcdic] Prediction market demo initialized on Arc Testnet.', 'color:#64748b');
+            console.log('%c🚀 Arcdic Testnet fully improved & enhanced', 'color:#6366f1; font-family:monospace; font-size:10px');
+            showToast('Welcome to the improved Arcdic • Prediction Markets on Arc Testnet', 'success');
         }
 
         window.onload = initializeApp;
