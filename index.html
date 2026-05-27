@@ -125,6 +125,11 @@
         .toast {
             animation: toastIn 0.3s ease forwards;
         }
+
+        /* New Arc styles */
+        .arc-glow {
+            box-shadow: 0 0 15px -3px rgb(167 139 250);
+        }
     </style>
 </head>
 <body class="bg-slate-950 text-slate-200">
@@ -140,6 +145,9 @@
                     <div>
                         <span class="logo-font text-3xl font-semibold tracking-[-2px]">arcdic</span>
                         <span class="ml-1.5 px-2.5 py-0.5 text-[10px] font-mono tracking-[3px] bg-gradient-to-r from-emerald-400 to-teal-400 text-white rounded-3xl align-super shadow-inner">TESTNET</span>
+                        <span onclick="event.stopImmediatePropagation(); window.open('https://arc.network','_blank')" class="ml-2 text-[10px] font-mono bg-violet-500 hover:bg-violet-600 text-white px-2 py-px rounded-lg cursor-pointer flex items-center gap-x-1">
+                            <i class="fa-solid fa-cube"></i> @arc
+                        </span>
                     </div>
                 </div>
 
@@ -183,11 +191,20 @@
                         <span id="connect-text">Connect Wallet</span>
                     </button>
 
-                    <!-- Balance (shown when connected) -->
+                    <!-- Balance -->
                     <div id="balance-pill" onclick="switchTab('portfolio')" class="hidden items-center gap-x-2 bg-slate-800 hover:bg-slate-700 px-4 h-10 rounded-3xl text-xs font-mono cursor-pointer">
                         <span class="text-emerald-400">$</span>
                         <span id="nav-balance" class="font-semibold">10,000</span>
                         <span class="text-emerald-400 text-[10px]">USDC</span>
+                    </div>
+
+                    <!-- New: Arc Points -->
+                    <div id="points-pill" onclick="showLeaderboard()" class="hidden ml-2 items-center gap-x-2 bg-violet-900 hover:bg-violet-800 px-4 h-10 rounded-3xl text-xs font-mono cursor-pointer transition-all arc-glow">
+                        <i class="fa-solid fa-gem text-violet-300"></i>
+                        <span id="nav-points" class="font-semibold text-violet-200">1,240</span>
+                        <span class="text-violet-300 text-[10px] flex items-center gap-x-px">
+                            ARC <i class="fa-solid fa-cube text-[9px]"></i>
+                        </span>
                     </div>
                 </div>
             </div>
@@ -211,6 +228,13 @@
                         <span class="text-slate-400 text-xs tracking-widest uppercase">TRADERS</span>
                         <div id="total-traders" class="font-semibold text-2xl metric">89,412</div>
                     </div>
+                    <!-- New Arc feature: Network TVL -->
+                    <div>
+                        <span class="text-slate-400 text-xs tracking-widest uppercase flex items-center gap-x-1">
+                            <i class="fa-solid fa-cube text-violet-400"></i> ARC TVL
+                        </span>
+                        <div id="arc-tvl" class="font-semibold text-2xl metric text-violet-300">$23.8M</div>
+                    </div>
                     <div class="h-8 w-px bg-slate-700"></div>
                     <div class="flex items-center gap-x-1.5 text-emerald-400">
                         <div class="w-2 h-2 bg-emerald-400 rounded-full live-dot"></div>
@@ -230,6 +254,13 @@
                         <i class="fa-solid fa-arrow-rotate-right"></i>
                         <span>Simulate live prices</span>
                     </button>
+
+                    <!-- New: Quick Arc Explorer -->
+                    <button onclick="openArcExplorer()" 
+                            class="text-xs flex items-center gap-x-1 px-4 py-2 bg-violet-600 hover:bg-violet-500 rounded-3xl text-white transition-colors">
+                        <i class="fa-solid fa-cube"></i>
+                        <span>Arc Explorer</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -245,7 +276,7 @@
                 <div class="flex-1">
                     <div class="inline-flex items-center gap-x-2 text-indigo-400 text-xs font-medium tracking-widest">
                         <i class="fa-solid fa-fire"></i>
-                        FEATURED MARKET
+                        FEATURED MARKET • POWERED BY @arc
                     </div>
                     <div id="featured-question" class="text-2xl font-semibold mt-1 leading-tight"></div>
                     <div class="flex gap-x-6 mt-4 text-sm">
@@ -301,7 +332,7 @@
 
             <!-- Portfolio Summary -->
             <div class="bg-slate-900 border border-slate-700 rounded-3xl p-8 mb-8 shadow-inner">
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-8">
                     <div>
                         <div class="text-xs text-slate-400 tracking-widest mb-1">AVAILABLE BALANCE</div>
                         <div id="portfolio-balance" class="text-5xl font-semibold tabular-nums">$10,000</div>
@@ -325,6 +356,14 @@
                             <div class="text-xs text-slate-400">24H CHANGE</div>
                             <div id="portfolio-change" class="text-3xl font-semibold text-emerald-400">+2.4%</div>
                         </div>
+                    </div>
+                    <!-- New: Arc Points in portfolio -->
+                    <div>
+                        <div class="text-xs text-violet-300 tracking-widest mb-1 flex items-center gap-x-1">
+                            <i class="fa-solid fa-gem"></i> ARC POINTS
+                        </div>
+                        <div id="portfolio-points" class="text-5xl font-semibold tabular-nums text-violet-300">1,240</div>
+                        <div class="text-xs text-slate-400 mt-2">Earned on Arc Testnet</div>
                     </div>
                 </div>
             </div>
@@ -357,6 +396,9 @@
                     <div class="flex items-center gap-x-3 mt-3 text-xs">
                         <span id="modal-category" class="px-3 py-1 rounded-2xl text-xs font-medium"></span>
                         <span id="modal-end-date" class="flex items-center gap-x-1 text-slate-400"></span>
+                        <span onclick="viewMarketOnExplorer()" class="text-violet-400 cursor-pointer flex items-center text-[10px] font-mono hover:text-violet-300">
+                            <i class="fa-solid fa-cube mr-1"></i> VIEW ON ARC EXPLORER
+                        </span>
                     </div>
                 </div>
                 <button onclick="closeTradeModal()" class="text-slate-400 hover:text-white transition-colors text-2xl leading-none">×</button>
@@ -431,7 +473,7 @@
                     <!-- Set by JS -->
                 </button>
                 
-                <p class="text-center text-[10px] text-slate-500 mt-4">Simulated trade • Arc Testnet • No real funds at risk</p>
+                <p class="text-center text-[10px] text-slate-500 mt-4">Simulated trade • Powered by @arc Testnet • No real funds at risk</p>
             </div>
         </div>
     </div>
@@ -443,7 +485,7 @@
              class="modal bg-slate-900 border border-slate-700 w-full max-w-lg rounded-3xl p-8">
             
             <div class="flex justify-between mb-6">
-                <h3 class="text-2xl font-semibold">Create a new market</h3>
+                <h3 class="text-2xl font-semibold">Create a new market <span class="text-violet-400 text-sm font-mono ml-2">(on @arc)</span></h3>
                 <button onclick="closeCreateModal()" class="text-3xl leading-none text-slate-400">×</button>
             </div>
             
@@ -487,7 +529,53 @@
             
             <div class="flex gap-4 mt-10">
                 <button onclick="closeCreateModal()" class="flex-1 py-4 border border-slate-700 rounded-3xl font-medium hover:bg-slate-800">Cancel</button>
-                <button onclick="createNewMarket()" class="flex-1 py-4 bg-white text-slate-900 rounded-3xl font-semibold hover:bg-slate-100">Launch Market</button>
+                <button onclick="createNewMarket()" class="flex-1 py-4 bg-white text-slate-900 rounded-3xl font-semibold hover:bg-slate-100">Launch on Arc</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New: Arc Leaderboard Modal -->
+    <div id="leaderboard-modal" onclick="if (event.target.id === 'leaderboard-modal') closeLeaderboardModal()" 
+         class="hidden fixed inset-0 bg-black/80 backdrop-blur-xl z-[100] flex items-center justify-center p-4">
+        <div onclick="event.stopImmediatePropagation()" 
+             class="modal bg-slate-900 border border-slate-700 w-full max-w-2xl rounded-3xl overflow-hidden max-h-[85vh] flex flex-col">
+            
+            <div class="px-8 pt-6 pb-4 border-b border-slate-700 flex items-center justify-between">
+                <div class="flex items-center gap-x-3">
+                    <i class="fa-solid fa-trophy text-amber-400 text-2xl"></i>
+                    <h3 class="text-2xl font-semibold">Arc Leaderboard</h3>
+                    <span class="px-3 py-0.5 text-xs font-mono bg-amber-400/10 text-amber-400 rounded-3xl">LIVE • @arc Testnet</span>
+                </div>
+                <button onclick="closeLeaderboardModal()" class="text-slate-400 hover:text-white transition-colors text-3xl leading-none">×</button>
+            </div>
+            
+            <div class="flex-1 p-6 overflow-auto">
+                <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-slate-900 z-10">
+                        <tr class="text-xs uppercase text-slate-400 border-b border-slate-700">
+                            <th class="text-left py-3 font-medium w-12">RANK</th>
+                            <th class="text-left py-3 font-medium">TRADER</th>
+                            <th class="text-right py-3 font-medium">VOLUME TRADED</th>
+                            <th class="text-right py-3 font-medium">ARC POINTS</th>
+                            <th class="text-right py-3 font-medium">WIN RATE</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboard-body" class="divide-y divide-slate-700 font-mono">
+                        <!-- Populated by JS -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="px-8 py-5 border-t border-slate-700 text-xs flex items-center justify-between bg-slate-950">
+                <div class="flex items-center gap-x-2">
+                    <span class="text-slate-400">Your current rank:</span>
+                    <span id="user-rank-badge" class="font-semibold text-emerald-400">#42</span>
+                </div>
+                <div onclick="closeLeaderboardModal()" class="flex items-center gap-x-2 text-violet-400 hover:text-violet-300 cursor-pointer">
+                    <span>Back to Arcdic</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </div>
+                <div class="text-[10px] text-slate-500">Real-time data from @arc Testnet</div>
             </div>
         </div>
     </div>
@@ -512,13 +600,14 @@
             connected: false,
             address: null,
             balance: 10000,
-            positions: {} // marketId → {yes: shares, no: shares, costBasis: number}
+            points: 1240,           // ← New: Arc Points
+            positions: {} 
         };
         let currentFilter = 'all';
         let currentTrade = { marketId: null, side: null };
         let liveInterval = null;
 
-        // Sample markets (expanded & improved)
+        // Sample markets (unchanged)
         function initMarkets() {
             const saved = localStorage.getItem('arcdicMarkets');
             if (saved) {
@@ -663,6 +752,7 @@
             if (!user.address) return;
             localStorage.setItem(getUserStorageKey(), JSON.stringify({
                 balance: user.balance,
+                points: user.points,           // ← New
                 positions: user.positions
             }));
         }
@@ -673,14 +763,16 @@
             if (saved) {
                 const data = JSON.parse(saved);
                 user.balance = data.balance ?? 10000;
+                user.points = data.points ?? 1240;           // ← New
                 user.positions = data.positions ?? {};
             } else {
                 user.balance = 10000;
+                user.points = 1240;
                 user.positions = {};
             }
         }
 
-        // Formatting
+        // Formatting (unchanged)
         function formatCurrency(amount) {
             return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
         }
@@ -705,7 +797,7 @@
             return diffDays + 'd';
         }
 
-        // Render category filters (added Resolved)
+        // Render category filters (unchanged)
         function renderCategoryFilters() {
             const container = document.getElementById('category-filters');
             container.innerHTML = '';
@@ -747,7 +839,7 @@
             });
         }
 
-        // Main render markets
+        // Render markets – added "on @arc" explorer hint
         function renderMarkets(filteredMarkets) {
             const grid = document.getElementById('markets-grid');
             grid.innerHTML = '';
@@ -776,9 +868,14 @@
                             <span class="px-4 py-1 text-xs font-bold tracking-widest rounded-3xl bg-slate-800 text-slate-400">
                                 RESOLVED • ${market.winner.toUpperCase()} WINS
                             </span>
-                            <button onclick="resolveMarket(${market.id}); event.stopImmediatePropagation()" class="text-xs text-slate-400 hover:text-emerald-400">
-                                <i class="fa-solid fa-rotate-right"></i>
-                            </button>
+                            <div class="flex gap-x-2">
+                                <button onclick="resolveMarket(${market.id}); event.stopImmediatePropagation()" class="text-xs text-slate-400 hover:text-emerald-400">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                                <button onclick="viewMarketOnExplorer(${market.id}); event.stopImmediatePropagation()" class="text-xs px-3 py-1 bg-violet-900 hover:bg-violet-800 text-violet-300 rounded-2xl flex items-center">
+                                    <i class="fa-solid fa-cube"></i>
+                                </button>
+                            </div>
                         </div>`;
                 } else {
                     bottomHTML = `
@@ -800,6 +897,9 @@
                         <div class="flex flex-col items-end">
                             <div class="text-xs text-slate-400">${daysLeft}</div>
                             ${market.liquidity > 300000 ? `<div class="text-teal-400 text-[10px] mt-px">HIGH LIQ</div>` : ''}
+                            <div onclick="viewMarketOnExplorer(${market.id}); event.stopImmediatePropagation()" class="mt-1 text-[10px] font-mono flex items-center text-violet-400 hover:text-violet-300">
+                                <i class="fa-solid fa-cube mr-px"></i>@arc
+                            </div>
                         </div>
                     </div>
                     
@@ -831,7 +931,7 @@
                 grid.appendChild(card);
             });
 
-            // Featured banner logic (first high-volume unresolved market)
+            // Featured banner
             const featured = filteredMarkets.find(m => !m.resolved && m.volume > 1000000);
             const banner = document.getElementById('featured-banner');
             if (featured) {
@@ -868,7 +968,6 @@
                 return matchSearch && matchCategory;
             });
 
-            // Sorting
             if (sortMode === 'volume') filtered.sort((a, b) => b.volume - a.volume);
             else if (sortMode === 'newest') filtered.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
             else if (sortMode === 'price-high') filtered.sort((a, b) => b.yesPrice - a.yesPrice);
@@ -885,7 +984,11 @@
             const volEl = document.getElementById('total-volume');
             volEl.textContent = formatLargeNumber(totalVol);
             
-            // Animate numbers
+            // New: fake Arc TVL that slowly grows
+            const tvlEl = document.getElementById('arc-tvl');
+            let tvl = 23800000 + Math.floor(Math.random() * 800000);
+            tvlEl.textContent = formatLargeNumber(tvl);
+
             document.querySelectorAll('.metric').forEach(el => {
                 el.style.animation = 'none';
                 void el.offsetWidth;
@@ -893,7 +996,7 @@
             });
         }
 
-        // ==================== WALLET (Arc Testnet) ====================
+        // ==================== WALLET + ARC ====================
         const ARC_CHAIN_ID = '0x4d0f02';
         const ARC_RPC = 'https://rpc.testnet.arc.network';
 
@@ -931,10 +1034,15 @@
             btn.classList.add('!bg-emerald-900', '!text-white', '!border-emerald-500');
             btn.onclick = disconnectWallet;
 
-            // Show balance pill
+            // Balance pill
             const pill = document.getElementById('balance-pill');
             pill.classList.remove('hidden');
             document.getElementById('nav-balance').textContent = user.balance.toLocaleString();
+
+            // New: Arc Points pill
+            const pointsPill = document.getElementById('points-pill');
+            pointsPill.classList.remove('hidden');
+            document.getElementById('nav-points').textContent = user.points.toLocaleString();
         }
 
         async function connectWallet() {
@@ -952,7 +1060,7 @@
                 loadUserStateForAddress(user.address);
                 updateWalletUI(user.address);
 
-                showToast(`✅ Connected to Arc Testnet`, 'success');
+                showToast(`✅ Connected to @arc Testnet`, 'success');
                 updatePortfolio();
                 saveUserState();
             } catch (err) {
@@ -961,7 +1069,7 @@
         }
 
         function disconnectWallet() {
-            if (!confirm('Disconnect wallet?')) return;
+            if (!confirm('Disconnect wallet from @arc?')) return;
             user.connected = false;
             user.address = null;
 
@@ -971,17 +1079,18 @@
             btn.onclick = connectWallet;
 
             document.getElementById('balance-pill').classList.add('hidden');
-            showToast('Wallet disconnected', 'info');
+            document.getElementById('points-pill').classList.add('hidden');   // ← New
+            showToast('Wallet disconnected from @arc', 'info');
             updatePortfolio();
         }
 
-        // Live price simulation (new feature)
+        // Live price simulation (unchanged)
         function startLivePriceSimulation() {
             if (liveInterval) clearInterval(liveInterval);
             liveInterval = setInterval(() => {
                 markets.forEach(m => {
                     if (!m.resolved && Math.random() > 0.3) {
-                        const drift = (Math.random() * 0.06) - 0.03; // ±3%
+                        const drift = (Math.random() * 0.06) - 0.03;
                         m.yesPrice = Math.max(0.03, Math.min(0.97, m.yesPrice + drift));
                     }
                 });
@@ -991,7 +1100,6 @@
         }
 
         function simulatePriceTick() {
-            // Manual trigger
             markets.forEach(m => {
                 if (!m.resolved) {
                     const drift = (Math.random() * 0.08) - 0.04;
@@ -999,10 +1107,21 @@
                 }
             });
             filterMarkets();
-            showToast('Live prices updated', 'success');
+            showToast('Live prices updated on @arc', 'success');
         }
 
-        // Trade modal
+        // New helper: award Arc points
+        function awardArcPoints(baseAmount) {
+            if (!user.connected) return 0;
+            const points = Math.max(20, Math.floor(baseAmount / 8));
+            user.points += points;
+            document.getElementById('nav-points').textContent = user.points.toLocaleString();
+            document.getElementById('portfolio-points').textContent = user.points.toLocaleString();
+            saveUserState();
+            return points;
+        }
+
+        // Trade modal (added explorer hint)
         function openTradeModal(marketId, side) {
             const market = markets.find(m => m.id === marketId);
             if (!market || market.resolved) return;
@@ -1028,7 +1147,7 @@
             updateModalPrice(market, side);
             document.getElementById('modal-balance').innerHTML = user.connected 
                 ? `${formatCurrency(user.balance)} <span class="text-xs font-normal text-slate-400">USDC</span>` 
-                : `<span class="text-rose-400">Connect wallet to trade</span>`;
+                : `<span class="text-rose-400">Connect wallet to trade on @arc</span>`;
 
             document.getElementById('trade-amount').value = '';
             calculateTradePreview();
@@ -1101,7 +1220,7 @@
         }
 
         function executeTrade() {
-            if (!user.connected) return showToast('Connect your wallet on Arc Testnet', 'error');
+            if (!user.connected) return showToast('Connect your wallet on @arc Testnet', 'error');
 
             const amount = parseFloat(document.getElementById('trade-amount').value);
             if (!amount || amount > user.balance) return showToast('Insufficient balance', 'error');
@@ -1112,13 +1231,12 @@
 
             const shares = amount / price;
 
-            // Update user
             user.balance -= amount;
             if (!user.positions[market.id]) user.positions[market.id] = { yes: 0, no: 0, costBasis: 0 };
             user.positions[market.id][side] += shares;
-            user.positions[market.id].costBasis += amount; // simple cost tracking for P&L
+            user.positions[market.id].costBasis += amount;
 
-            // Price impact (improved)
+            // Price impact
             const impact = Math.min(0.04, amount / 80000);
             if (side === 'yes') market.yesPrice = Math.min(0.97, market.yesPrice + impact);
             else market.yesPrice = Math.max(0.03, market.yesPrice - impact);
@@ -1126,11 +1244,14 @@
             market.volume += amount;
             market.traders = Math.max(market.traders, Math.floor(Math.random()*200) + market.traders);
 
+            // NEW: Award Arc points
+            const pointsAwarded = awardArcPoints(amount);
+
             saveMarkets();
             saveUserState();
             closeTradeModal();
 
-            showToast(`✅ Bought ${shares.toFixed(1)} ${side.toUpperCase()} shares`, 'success');
+            showToast(`✅ Bought ${shares.toFixed(1)} ${side.toUpperCase()} shares (+${pointsAwarded} ARC pts)`, 'success');
             filterMarkets();
             updateStats();
             updatePortfolio();
@@ -1143,15 +1264,17 @@
             currentTrade = { marketId: null, side: null };
         }
 
-        // Portfolio
+        // Portfolio – updated with Arc points
         function updatePortfolio() {
             if (!user.connected) {
                 document.getElementById('portfolio-balance').textContent = '$0';
+                document.getElementById('portfolio-points').textContent = '0';
                 document.getElementById('no-positions').classList.remove('hidden');
                 return;
             }
 
             document.getElementById('portfolio-balance').innerHTML = formatCurrency(user.balance);
+            document.getElementById('portfolio-points').textContent = user.points.toLocaleString();
 
             let totalValue = 0;
             let totalCost = 0;
@@ -1242,16 +1365,18 @@
                 pos[side] = 0;
                 if (pos.yes + pos.no < 0.01) delete user.positions[marketId];
 
-                // Reverse impact
                 const impact = Math.min(0.03, proceeds / 80000);
                 if (side === 'yes') market.yesPrice = Math.max(0.03, market.yesPrice - impact);
                 else market.yesPrice = Math.min(0.97, market.yesPrice + impact);
 
                 market.volume += proceeds;
 
+                // NEW: Award Arc points on sell
+                const pointsAwarded = awardArcPoints(proceeds);
+
                 saveMarkets();
                 saveUserState();
-                showToast(`Sold ${side.toUpperCase()} for ${formatCurrency(proceeds)}`, 'success');
+                showToast(`Sold ${side.toUpperCase()} for ${formatCurrency(proceeds)} (+${pointsAwarded} ARC pts)`, 'success');
                 filterMarkets();
                 updatePortfolio();
             }
@@ -1272,13 +1397,15 @@
                 }
             });
             if (total > 0) {
+                // NEW: Bonus Arc points for claiming
+                const pointsAwarded = awardArcPoints(total * 2);
                 saveUserState();
                 updatePortfolio();
-                showToast(`Claimed ${formatCurrency(total)}`, 'success');
+                showToast(`Claimed ${formatCurrency(total)} (+${pointsAwarded} ARC pts)`, 'success');
             }
         }
 
-        // Create market
+        // Create market – awards points
         function showCreateModal() {
             const modal = document.getElementById('create-modal');
             modal.classList.remove('hidden');
@@ -1325,10 +1452,14 @@
 
             markets.unshift(newMarket);
             saveMarkets();
+
+            // NEW: Reward for creating market on Arc
+            if (user.connected) awardArcPoints(250);
+
             closeCreateModal();
             filterMarkets();
             updateStats();
-            showToast('Market launched on Arcdic!', 'success');
+            showToast('Market launched on @arc!', 'success');
         }
 
         function resolveMarket(id) {
@@ -1355,6 +1486,67 @@
             updatePortfolio();
         }
 
+        // NEW: Arc Leaderboard
+        const leaderboardData = [
+            { rank: 1, address: "0x71C4f...a3f9", volume: 1245000, points: 24800, winRate: "94%" },
+            { rank: 2, address: "0x8b2d9...f1e2", volume: 987000, points: 19740, winRate: "89%" },
+            { rank: 3, address: "0x4a9c2...b7d1", volume: 765000, points: 15300, winRate: "83%" },
+            { rank: 4, address: "0x2f3e7...c8a4", volume: 543000, points: 10860, winRate: "78%" },
+            { rank: 5, address: "0x9d1a8...e5f6", volume: 432000, points: 8640, winRate: "71%" },
+            { rank: 6, address: "0x3b6c1...9d2e", volume: 321000, points: 6420, winRate: "66%" },
+            { rank: 7, address: "0x5e7f4...a1b3", volume: 289000, points: 5780, winRate: "62%" }
+        ];
+
+        function renderLeaderboard() {
+            const tbody = document.getElementById('leaderboard-body');
+            tbody.innerHTML = leaderboardData.map(entry => `
+                <tr class="hover:bg-slate-800/60 transition-colors">
+                    <td class="py-4 text-amber-400 font-semibold text-center">#${entry.rank}</td>
+                    <td class="py-4 font-mono">${entry.address}</td>
+                    <td class="py-4 text-right">${formatLargeNumber(entry.volume)}</td>
+                    <td class="py-4 text-right font-semibold text-violet-400">${entry.points.toLocaleString()}</td>
+                    <td class="py-4 text-right text-emerald-400">${entry.winRate}</td>
+                </tr>
+            `).join('');
+            
+            // Fake user rank
+            document.getElementById('user-rank-badge').innerHTML = user.connected 
+                ? `<span class="px-3 py-1 bg-emerald-400 text-slate-950 rounded-3xl">#42</span>` 
+                : 'Connect wallet to see your rank';
+        }
+
+        function showLeaderboard() {
+            if (!user.connected) {
+                showToast('Connect your @arc wallet to see the full leaderboard', 'info');
+                return;
+            }
+            renderLeaderboard();
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeLeaderboardModal() {
+            const modal = document.getElementById('leaderboard-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        // NEW: Fake Arc Explorer
+        function viewMarketOnExplorer(id) {
+            const market = id ? markets.find(m => m.id === id) : null;
+            const fakeTx = '0x' + Math.random().toString(16).slice(2, 42);
+            showToast(`Opened market #${id || 'featured'} on Arc Explorer<br><span class="text-[10px] font-mono">${fakeTx}</span>`, 'success');
+            // In a real app this would open https://explorer.testnet.arc.network
+            console.log('%c[Arc Explorer] Market viewed: ' + (market ? market.question : 'featured'), 'color:#a78bfa');
+        }
+
+        function openArcExplorer() {
+            const fakeTx = '0x' + Math.random().toString(16).slice(2, 42);
+            showToast(`Arc Explorer opened<br><span class="text-xs font-mono">Latest block • ${Math.floor(12480000 + Math.random()*5000)}</span>`, 'success');
+            console.log('%c[Arc Explorer] https://explorer.testnet.arc.network/tx/' + fakeTx, 'color:#a78bfa');
+        }
+
         // Toast
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -1374,7 +1566,7 @@
             }, 3200);
         }
 
-        // Tab switch
+        // Tab switch (unchanged)
         function switchTab(tab) {
             const marketsView = document.getElementById('markets-view');
             const portfolioView = document.getElementById('portfolio-view');
@@ -1401,7 +1593,7 @@
             }
         }
 
-        // Keyboard shortcuts & final init
+        // Keyboard shortcuts
         function setupShortcuts() {
             document.addEventListener('keydown', e => {
                 if (e.key === '/' && document.activeElement.tagName === 'BODY') {
@@ -1411,8 +1603,10 @@
                 if (e.key === 'Escape') {
                     const tradeModal = document.getElementById('trade-modal');
                     const createModal = document.getElementById('create-modal');
+                    const lbModal = document.getElementById('leaderboard-modal');
                     if (tradeModal.classList.contains('flex')) closeTradeModal();
                     else if (createModal.classList.contains('flex')) closeCreateModal();
+                    else if (lbModal.classList.contains('flex')) closeLeaderboardModal();
                 }
             });
         }
@@ -1426,7 +1620,6 @@
             startLivePriceSimulation();
             setupShortcuts();
 
-            // Check wallet
             if (window.ethereum) {
                 try {
                     const accounts = await window.ethereum.request({ method: 'eth_accounts' });
@@ -1442,8 +1635,8 @@
 
             updatePortfolio();
 
-            console.log('%c🚀 Arcdic Testnet fully improved & enhanced', 'color:#6366f1; font-family:monospace; font-size:10px');
-            showToast('Welcome to the improved Arcdic • Prediction Markets on Arc Testnet', 'success');
+            console.log('%c🚀 Arcdic Testnet + @arc features loaded', 'color:#a78bfa; font-family:monospace; font-size:11px');
+            showToast('Welcome to Arcdic • Now with <strong>Arc Points</strong> &amp; <strong>Leaderboard</strong>', 'success');
         }
 
         window.onload = initializeApp;
